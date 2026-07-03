@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-        <style type="text/tailwindcss">
-            @theme inline {
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme inline {
                 --color-background: var(--background);
                 --color-foreground: var(--foreground);
                 --color-panel: var(--panel);
@@ -89,14 +90,14 @@
                 }
             }
         </style>
-        <link
-            rel="stylesheet"
-            href="{{ url_for("static", path='css/index.css')}}"
-        />
-    </head>
+    <link rel="stylesheet" href="{{ url_for("static", path='css/index.css')}}" />
+</head>
 
-    <body>
-        {% include 'components/navbar.html' %}
-        {% block content %} {% endblock content %}
-    </body>
+<body>
+    {% include 'partials/navbar.html' %}
+    {% block content %} {% endblock content %}
+
+    <script type="module" src="{{ url_for('static', path='js/navbar.js')}}"></script>
+</body>
+
 </html>

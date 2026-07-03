@@ -22,19 +22,19 @@
                 >
                     <path d="M12 19h8"></path>
                     <path d="m4 17 6-6-6-6"></path></svg></span
-            ><span class="font-semibold"
-                >Blog</span
-            ></a
+            ><span class="font-semibold">Blog</span></a
         >
         <nav class="hidden items-center gap-1 min-[875px]:flex">
             <a
-                href="#"
-                class="rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel hover:text-foreground"
+                href="{{ url_for('blogs')}}"
+                data-routes="/,/blogs"
+                class="nav-link rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel hover:text-foreground"
                 ><span class="text-accent">&gt;</span> Blogs</a
             >
             <a
-                href="#"
-                class="rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel hover:text-foreground"
+                href="{{ url_for('categories')}}"
+                data-routes="/categories"
+                class="nav-link rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel hover:text-foreground"
                 ><span class="text-accent">&gt;</span> Categories</a
             >
         </nav>
