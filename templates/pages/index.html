@@ -34,9 +34,9 @@
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {% for blog in blogs %}
         <a class="group panel overflow-hidden lift lift-hover flex flex-col hover:border-accent/40"
-            href="{{ url_for('blogs') }}" data-discover="true">
+            href="{{ url_for('blog') }}" data-discover="true">
             <div class="relative aspect-[16/10] w-full overflow-hidden border-b border-border bg-panel-2">
-                <img alt="{{ blog.description }}"
+                <img alt="{{ blog.title }}"
                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     src="{{ url_for('static', path=blog.image)}}" />
                 {% if blog.pinned %}

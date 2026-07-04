@@ -1,4 +1,4 @@
-from fastapi import Body, FastAPI, Request
+from fastapi import Body, FastAPI, Request, HTTPException, status
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -57,6 +57,7 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 
+# Client
 @app.get("/", include_in_schema=False, name="root")
 @app.get("/blogs", include_in_schema=False, name="blogs")
 def home(request: Request):
@@ -65,6 +66,17 @@ def home(request: Request):
     )
 
 
+@app.get("/blog", include_in_schema=False, name="blog")
+def blog(request: Request):
+    return templates.TemplateResponse(request, "pages/blog.html", {"blog": BLOGS[1]})
+
+
 @app.get("/categories", include_in_schema=False, name="categories")
 def categories(request: Request):
     return templates.TemplateResponse(request, "pages/categories.html")
+
+
+# Server
+
+
+

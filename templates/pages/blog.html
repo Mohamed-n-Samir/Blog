@@ -1,0 +1,179 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+<div class="mx-auto max-w-7xl px-6 py-10">
+    <div class="flex items-center justify-between mb-6"><a
+            class="inline-flex items-center gap-2 rounded-md border border-border bg-panel px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel-2 hover:text-foreground"
+            href="{{url_for('blogs')}}" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" class="lucide lucide-arrow-left h-3 w-3" aria-hidden="true">
+                <path d="m12 19-7-7 7-7"></path>
+                <path d="M19 12H5"></path>
+            </svg> Back to Blogs</a>
+            {% if blog.pinned %}
+        <span
+            class="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] uppercase font-mono tracking-wider text-accent"><svg
+                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-pin h-3 w-3" aria-hidden="true">
+                <path d="M12 17v5"></path>
+                <path
+                    d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z">
+                </path>
+            </svg> Pinned</span>
+            {% endif %}
+    </div>
+    <div class="relative mb-10 overflow-hidden panel min-h-[300px] md:min-h-[380px] flex items-end p-6 md:p-10">
+        <div class="absolute inset-0 z-0"><img
+                alt="{{ blog.title }}"
+                class="w-full h-full object-cover" src="{{ url_for('static', path=blog.image)}}">
+            <div class="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/55 z-10">
+            </div>
+        </div>
+        <div class="relative z-20 w-full">
+            <div class="mb-4 flex flex-wrap gap-2 text-[10px] md:text-xs font-mono"><span
+                    class="flex items-center gap-1.5 rounded bg-background/80 backdrop-blur border border-border px-2.5 py-1 text-muted-foreground"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-calendar h-3.5 w-3.5 text-accent" aria-hidden="true">
+                        <path d="M8 2v4"></path>
+                        <path d="M16 2v4"></path>
+                        <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                        <path d="M3 10h18"></path>
+                    </svg> {{ blog.date }} </span><span
+                    class="flex items-center gap-1.5 rounded bg-background/80 backdrop-blur border border-border px-2.5 py-1 text-muted-foreground"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-clock h-3.5 w-3.5 text-accent" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg> {{ blog.read_time }}</span>
+                    {% if blog.pinned %}
+                    <span
+                    class="flex items-center gap-1.5 rounded bg-accent/95 px-2.5 py-1 text-black font-semibold uppercase tracking-wider"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-pin h-3.5 w-3.5" aria-hidden="true">
+                        <path d="M12 17v5"></path>
+                        <path
+                            d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z">
+                        </path>
+                    </svg> Pinned</span>
+                    {% endif %}
+                </div>
+            <h1 class="font-display text-xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">{{ blog.title }}</h1>
+            <p class="text-xs md:text-sm text-muted-foreground leading-relaxed max-w-3xl">{{ blog.description }}</p>
+        </div>
+    </div>
+    <div class="grid gap-8 lg:grid-cols-[1fr_300px]">
+        <div class="panel p-6 md:p-8 space-y-8 h-fit">
+            <div class="blog-section">
+                <h2
+                    class="font-display text-lg md:text-xl font-bold text-foreground mb-4 border-b border-border pb-2 flex items-center gap-2">
+                    <span class="text-accent">#</span>Introduction
+                </h2>
+                <div class="space-y-4">
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed">AI coding tools are evolving at
+                        breakneck speed. We've graduated from basic line completion to autonomous agents that can read
+                        an entire repository, outline a multi-file plan, execute edits, run unit tests, and resolve
+                        compilation errors.</p>
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed">But as these agents become more
+                        active in our codebases, they are fundamentally altering what it means to be a software
+                        engineer.</p>
+                </div>
+                <div class="pt-8"><br class="border-t border-border/25 block my-2 content-none"></div>
+            </div>
+            <div class="blog-section">
+                <h2
+                    class="font-display text-lg md:text-xl font-bold text-foreground mb-4 border-b border-border pb-2 flex items-center gap-2">
+                    <span class="text-accent">#</span>From Coders to Systems Architects
+                </h2>
+                <div class="space-y-4">
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed">When an AI agent can write 500
+                        lines of clean boilerplate code in 10 seconds, the value of manual code typing drops to near
+                        zero. Instead, the developer's role shifts to system architect and code reviewer.</p>
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed">You are no longer just writing
+                        instructions; you are directing an autonomous assistant, defining system design constraints,
+                        validating security requirements, and reviewing complex PR diffs.</p>
+                </div>
+                <div class="pt-8"><br class="border-t border-border/25 block my-2 content-none"></div>
+            </div>
+            <div class="blog-section">
+                <h2
+                    class="font-display text-lg md:text-xl font-bold text-foreground mb-4 border-b border-border pb-2 flex items-center gap-2">
+                    <span class="text-accent">#</span>The Agentic Workflow
+                </h2>
+                <div class="space-y-4">
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed">An agentic coding workflow
+                        usually looks like this:</p>
+                    <ul class="list-disc pl-5 space-y-2 text-xs md:text-sm text-muted-foreground">
+                        <li><strong class="font-semibold text-accent">Prompt &amp; Goal</strong>: Define the user story
+                            or bug description clearly.</li>
+                        <li><strong class="font-semibold text-accent">Planning Phase</strong>: The agent outlines which
+                            files to modify and how.</li>
+                        <li><strong class="font-semibold text-accent">Execution Phase</strong>: The agent applies edits
+                            and compiles the code.</li>
+                        <li><strong class="font-semibold text-accent">Validation Phase</strong>: The agent executes test
+                            suites and iterates on failures.</li>
+                        <li><strong class="font-semibold text-accent">Review</strong>: The human developer inspects the
+                            resulting pull request.</li>
+                    </ul>
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed">This iterative loop can compress
+                        a task that once took two days into a 15-minute verification session.</p>
+                </div>
+                <div class="pt-8"><br class="border-t border-border/25 block my-2 content-none"></div>
+            </div>
+            <div class="blog-section">
+                <h2
+                    class="font-display text-lg md:text-xl font-bold text-foreground mb-4 border-b border-border pb-2 flex items-center gap-2">
+                    <span class="text-accent">#</span>The Skills You Need Now
+                </h2>
+                <div class="space-y-4">
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed">To thrive in the era of agentic
+                        software development, focus on:</p>
+                    <ul class="list-disc pl-5 space-y-2 text-xs md:text-sm text-muted-foreground">
+                        <li><strong class="font-semibold text-accent">System Design &amp; API Contracts</strong>:
+                            Defining clean boundaries makes it much easier for agents to integrate code.</li>
+                        <li><strong class="font-semibold text-accent">Advanced Debugging</strong>: You will spend less
+                            time coding and more time figuring out why an agent's code failed under specific edge cases.
+                        </li>
+                        <li><strong class="font-semibold text-accent">PR Reviewing</strong>: Developing an eye for
+                            subtle logical bugs or security vulnerabilities introduced by generated code.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="hidden lg:block">
+            <div class="sticky top-24 panel p-5 space-y-4">
+                <div class="flex items-center gap-2 text-[10px] font-mono text-accent uppercase tracking-wider"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-sparkles h-4 w-4" aria-hidden="true">
+                        <path
+                            d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z">
+                        </path>
+                        <path d="M20 2v4"></path>
+                        <path d="M22 4h-4"></path>
+                        <circle cx="4" cy="20" r="2"></circle>
+                    </svg><span>Reader Controls</span></div>
+                <p class="text-xs font-semibold text-foreground leading-snug line-clamp-3">AI Agents Are Changing How We
+                    Write Software — And Most Developers Aren't Ready</p>
+                <div class="border-t border-border pt-4 space-y-2 font-mono"><button
+                        class="flex w-full items-center justify-center gap-2 rounded-md border border-accent/40 bg-accent/10 px-3 py-2 text-[11px] text-accent transition-colors hover:bg-accent/20 cursor-pointer"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-copy h-3.5 w-3.5" aria-hidden="true">
+                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                        </svg>Copy Article Link</button><button
+                        class="flex w-full items-center justify-center gap-2 rounded-md border border-border bg-panel px-3 py-2 text-[11px] text-muted-foreground transition-colors hover:bg-panel-2 hover:text-foreground cursor-pointer"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-arrow-up h-3.5 w-3.5" aria-hidden="true">
+                            <path d="m5 12 7-7 7 7"></path>
+                            <path d="M12 19V5"></path>
+                        </svg>Scroll To Top</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
