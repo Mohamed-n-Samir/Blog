@@ -1,4 +1,112 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
-<div>Hello this is Home with layout</div>
-{% endblock content %}
+
+<div class="mx-auto max-w-7xl px-6 py-10">
+    <div class="panel p-6 md:p-8 mb-10 relative overflow-hidden flex flex-col items-center text-center">
+        <div class="flex items-center gap-1.5 text-xs font-mono text-muted-foreground mb-3">
+            <span class="text-accent">&gt;</span> cat ./knowledge-base/*.md
+        </div>
+
+        <div class="flex items-center justify-center gap-3 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-book-open h-6 w-6 text-accent" aria-hidden="true">
+                <path d="M12 7v14"></path>
+                <path
+                    d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z">
+                </path>
+            </svg>
+
+            <h1 class="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                Blogs
+            </h1>
+
+            <span class="rounded bg-panel-2 border border-border px-2 py-0.5 text-xs text-muted-foreground font-mono">
+                {{ blogsLen }} posts
+            </span>
+        </div>
+
+        <p class="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            Deep dives on architecture, product engineering, practical coding
+            patterns, and lessons from shipping real software.
+        </p>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {% for blog in blogs %}
+        <a class="group panel overflow-hidden lift lift-hover flex flex-col hover:border-accent/40"
+            href="{{ url_for('blogs') }}" data-discover="true">
+            <div class="relative aspect-[16/10] w-full overflow-hidden border-b border-border bg-panel-2">
+                <img alt="{{ blog.description }}"
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    src="{{ url_for('static', path=blog.image)}}" />
+                {% if blog.pinned %}
+                <span
+                    class="absolute left-3 top-3 inline-flex items-center gap-1 rounded bg-accent/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-black"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-pin h-3 w-3" aria-hidden="true">
+                        <path d="M12 17v5"></path>
+                        <path
+                            d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z">
+                        </path>
+                    </svg>
+                    Pinned</span>
+                {% endif %}
+            </div>
+            <div class="flex flex-1 flex-col p-5">
+                <div class="mb-3 flex items-center gap-4 text-[10px] text-muted-foreground font-mono">
+                    <span class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-calendar h-3.5 w-3.5 text-accent" aria-hidden="true">
+                            <path d="M8 2v4"></path>
+                            <path d="M16 2v4"></path>
+                            <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                            <path d="M3 10h18"></path>
+                        </svg>
+                        {{ blog.date }}</span><span class="flex items-center gap-1"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-clock h-3.5 w-3.5 text-accent" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 6v6l4 2"></path>
+                        </svg>
+                        {{ blog.read_time }}</span>
+                </div>
+                <h2
+                    class="mb-2 font-display text-base font-bold text-foreground group-hover:text-accent line-clamp-2 leading-tight">
+                    {{ blog.title }}
+                </h2>
+                <p class="mb-4 flex-1 text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                    {{ blog.description }}
+                </p>
+                <div class="mb-4 flex flex-wrap gap-1.5">
+                    {% for tag in blog.tags %}
+                    <span
+                        class="inline-flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-0.5 text-[9px] uppercase tracking-wider text-accent font-mono"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-tag h-2.5 w-2.5 text-accent" aria-hidden="true">
+                            <path
+                                d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z">
+                            </path>
+                            <circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                        </svg>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                <div class="mt-auto flex items-center gap-1 text-xs font-semibold text-accent group-hover:underline">
+                    Read article
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-arrow-right h-3 w-3" aria-hidden="true">
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+
+    {% endblock content %}
