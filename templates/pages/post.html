@@ -1,15 +1,18 @@
 {% extends 'layouts/base.html' %}
+
+{% block title %}{{ post.title|truncate(50) }}{% endblock %}
+
 {% block content %}
 <div class="mx-auto max-w-7xl px-6 py-10">
     <div class="flex items-center justify-between mb-6"><a
             class="inline-flex items-center gap-2 rounded-md border border-border bg-panel px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel-2 hover:text-foreground"
-            href="{{url_for('blogs')}}" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+            href="{{url_for('blog')}}" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round" class="lucide lucide-arrow-left h-3 w-3" aria-hidden="true">
                 <path d="m12 19-7-7 7-7"></path>
                 <path d="M19 12H5"></path>
-            </svg> Back to Blogs</a>
-            {% if blog.pinned %}
+            </svg> Back to Blog</a>
+            {% if post.pinned %}
         <span
             class="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] uppercase font-mono tracking-wider text-accent"><svg
                 xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -24,8 +27,8 @@
     </div>
     <div class="relative mb-10 overflow-hidden panel min-h-[300px] md:min-h-[380px] flex items-end p-6 md:p-10">
         <div class="absolute inset-0 z-0"><img
-                alt="{{ blog.title }}"
-                class="w-full h-full object-cover" src="{{ url_for('static', path=blog.image)}}">
+                alt="{{ post.title }}"
+                class="w-full h-full object-cover" src="{{ url_for('static', path=post.image)}}">
             <div class="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/55 z-10">
             </div>
         </div>
@@ -39,15 +42,15 @@
                         <path d="M16 2v4"></path>
                         <rect width="18" height="18" x="3" y="4" rx="2"></rect>
                         <path d="M3 10h18"></path>
-                    </svg> {{ blog.date }} </span><span
+                    </svg> {{ post.date }} </span><span
                     class="flex items-center gap-1.5 rounded bg-background/80 backdrop-blur border border-border px-2.5 py-1 text-muted-foreground"><svg
                         xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="lucide lucide-clock h-3.5 w-3.5 text-accent" aria-hidden="true">
                         <circle cx="12" cy="12" r="10"></circle>
                         <path d="M12 6v6l4 2"></path>
-                    </svg> {{ blog.read_time }}</span>
-                    {% if blog.pinned %}
+                    </svg> {{ post.read_time }}</span>
+                    {% if post.pinned %}
                     <span
                     class="flex items-center gap-1.5 rounded bg-accent/95 px-2.5 py-1 text-black font-semibold uppercase tracking-wider"><svg
                         xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -60,8 +63,8 @@
                     </svg> Pinned</span>
                     {% endif %}
                 </div>
-            <h1 class="font-display text-xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">{{ blog.title }}</h1>
-            <p class="text-xs md:text-sm text-muted-foreground leading-relaxed max-w-3xl">{{ blog.description }}</p>
+            <h1 class="font-display text-xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">{{ post.title }}</h1>
+            <p class="text-xs md:text-sm text-muted-foreground leading-relaxed max-w-3xl">{{ post.description }}</p>
         </div>
     </div>
     <div class="grid gap-8 lg:grid-cols-[1fr_300px]">

@@ -3,7 +3,7 @@
 >
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <a
-            href="{{ url_for('blogs')}}"
+            href="{{ url_for('blog')}}"
             class="flex shrink-0 items-center gap-2 font-display text-sm whitespace-nowrap"
             ><span
                 class="grid h-7 w-7 place-items-center rounded-md bg-accent/15 text-accent"
@@ -26,10 +26,10 @@
         >
         <nav class="hidden items-center gap-1 min-[875px]:flex">
             <a
-                href="{{ url_for('blogs')}}"
-                data-routes="/,/blogs"
+                href="{{ url_for('blog')}}"
+                data-routes="/,/blog"
                 class="nav-link rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel hover:text-foreground"
-                ><span class="text-accent">&gt;</span> Blogs</a
+                ><span class="text-accent">&gt;</span> Blog</a
             >
             <a
                 href="{{ url_for('categories')}}"

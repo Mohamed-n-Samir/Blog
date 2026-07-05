@@ -1,4 +1,7 @@
 {% extends 'layouts/base.html' %}
+
+{% block title %}My Blog{% endblock %}
+
 {% block content %}
 
 <div class="mx-auto max-w-7xl px-6 py-10">
@@ -18,11 +21,11 @@
             </svg>
 
             <h1 class="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-                Blogs
+                Blog Posts
             </h1>
 
             <span class="rounded bg-panel-2 border border-border px-2 py-0.5 text-xs text-muted-foreground font-mono">
-                {{ blogsLen }} posts
+                {{ posts|length }} posts
             </span>
         </div>
 
@@ -32,14 +35,14 @@
         </p>
     </div>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {% for blog in blogs %}
+        {% for post in posts %}
         <a class="group panel overflow-hidden lift lift-hover flex flex-col hover:border-accent/40"
-            href="{{ url_for('blog') }}" data-discover="true">
+            href="{{ url_for('post',id=post.id) }}" data-discover="true">
             <div class="relative aspect-[16/10] w-full overflow-hidden border-b border-border bg-panel-2">
-                <img alt="{{ blog.title }}"
+                <img alt="{{ post.title }}"
                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    src="{{ url_for('static', path=blog.image)}}" />
-                {% if blog.pinned %}
+                    src="{{ url_for('static', path=post.image)}}" />
+                {% if post.pinned %}
                 <span
                     class="absolute left-3 top-3 inline-flex items-center gap-1 rounded bg-accent/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-black"><svg
                         xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -64,24 +67,24 @@
                             <rect width="18" height="18" x="3" y="4" rx="2"></rect>
                             <path d="M3 10h18"></path>
                         </svg>
-                        {{ blog.date }}</span><span class="flex items-center gap-1"><svg
+                        {{ post.date }}</span><span class="flex items-center gap-1"><svg
                             xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="lucide lucide-clock h-3.5 w-3.5 text-accent" aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <path d="M12 6v6l4 2"></path>
                         </svg>
-                        {{ blog.read_time }}</span>
+                        {{ post.read_time }}</span>
                 </div>
                 <h2
                     class="mb-2 font-display text-base font-bold text-foreground group-hover:text-accent line-clamp-2 leading-tight">
-                    {{ blog.title }}
+                    {{ post.title }}
                 </h2>
                 <p class="mb-4 flex-1 text-xs text-muted-foreground line-clamp-3 leading-relaxed">
-                    {{ blog.description }}
+                    {{ post.description }}
                 </p>
                 <div class="mb-4 flex flex-wrap gap-1.5">
-                    {% for tag in blog.tags %}
+                    {% for tag in post.tags %}
                     <span
                         class="inline-flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-0.5 text-[9px] uppercase tracking-wider text-accent font-mono"><svg
                             xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"

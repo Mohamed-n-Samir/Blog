@@ -1,0 +1,40 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ status_code }} | Error Page{% endblock %}
+
+{% block content %}   
+
+<div class="flex min-h-screen items-center justify-center bg-background px-4">
+    <div class="max-w-md text-center">
+        <h1 class="text-xl font-semibold tracking-tight text-foreground">
+            This page didn't load
+        </h1>
+
+        <p class="mt-2 text-sm text-muted-foreground">
+            {% if message %}
+                {{ message }}
+            {% else %}
+                An error occurred. Please check your request and try again.
+            {% endif %}
+        </p>
+
+        <div class="mt-6 flex flex-wrap justify-center gap-2">
+            <button
+                type="button"
+                onclick="window.location.reload()"
+                class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+                Try again
+            </button>
+
+            <a
+                href="{{ url_for('blog') }}"
+                class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+                Go home
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}   
