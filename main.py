@@ -1,61 +1,32 @@
-from fastapi import Body, FastAPI, Request, HTTPException, status
+from fastapi import Depends, Body, FastAPI, Request, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
+
+from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-POSTS = [
-    {
-        "id": 1,
-        "slug": "almost-half-of-ai-written-code-fails-in-production",
-        "title": "Almost Half of AI-Written Code Fails in Production — Here's Why That Matters",
-        "description": "A new report found that 44% of AI-generated code breaks when it hits real users. Not in testing. In production. Here's what's actually going on.",
-        "image": "imgs/ai_code_fails.png",
-        "date": "Apr 17, 2026",
-        "read_time": "6 min read",
-        "pinned": True,
-        "tags": [
-            "AI",
-            "Software Engineering",
-        ],
-    },
-    {
-        "id": 2,
-        "slug": "ai-agents-are-changing-how-we-write-software",
-        "title": "AI Agents Are Changing How We Write Software — And Most Developers Aren't Ready",
-        "description": "AI agents don't just autocomplete your code anymore. They plan, execute, debug, and ship. Here's what that actually means for developer workflows.",
-        "image": "imgs/keyboard_setup.png",
-        "date": "Feb 10, 2026",
-        "read_time": "4 min read",
-        "pinned": True,
-        "tags": [
-            "AI",
-            "Software Engineering",
-            "Developer Tools",
-        ],
-    },
-    {
-        "id": 3,
-        "slug": "your-tools-are-getting-more-expensive",
-        "title": "Your Tools Are Getting More Expensive — And It's Only Going to Get Worse",
-        "description": "GitHub Copilot paused signups, removed models, and is switching to token billing. Amazon Bedrock keeps locking models. Here is how to keep costs manageable.",
-        "image": "imgs/ai_tools_cost.png",
-        "date": "May 1, 2026",
-        "read_time": "6 min read",
-        "pinned": False,
-        "tags": [
-            "Developer Tools",
-            "AI",
-        ],
-    },
-]
+from sqlalchemy import select, or_
+from sqlalchemy.orm import Session
+
+from app.models import models
+from app.models.schemas import PostCreate, PostResponse, UserCreate, UserResponse
+
+from app.config.database import Base, engine, get_db
+
+from pathlib import Path
+from typing import Annotated
 
 BASE_DIR = Path(__file__).resolve().parent
 
+Base.metadata.create_all(bind=engine)
+
+
 app = FastAPI()
+
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+app.mount("/media", StaticFiles(directory=BASE_DIR / "media"), name="media")
 
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
@@ -63,20 +34,39 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 # Client pages
 @app.get("/", include_in_schema=False, name="root")
 @app.get("/blog", include_in_schema=False, name="blog")
-def home(request: Request):
-    return templates.TemplateResponse(request, "pages/index.html", {"posts": POSTS})
+def home_page(request: Request, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Post))
+    posts = result.scalars().all()
+    return templates.TemplateResponse(request, "pages/index.html", {"posts": posts})
 
 
-@app.get("/blog/post/{id}", include_in_schema=False, name="post")
-def post(id: int, request: Request):
-    for post in POSTS:
-        if post["id"] == id:
-            return templates.TemplateResponse(
-                request, "pages/post.html", {"post": post}
-            )
-    return templates.TemplateResponse(
-        request, "errors/404.html",context={"message": "Post Not found"}, status_code=status.HTTP_404_NOT_FOUND
-    )
+@app.get("/blog/posts/{id}", include_in_schema=False, name="post")
+def post_page(post_id: int, request: Request, db: Annotated[Session, Depends(get_db)]):
+
+    result = db.execute(select(models.Post).where(models.Post.id == post_id))
+    post = result.scalar_one_or_none()
+    if post:
+        return templates.TemplateResponse(request, "pages/post.html", {"post": post})
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not found")
+
+
+@app.get(
+    "/users/{user_id}/posts", include_in_schema=False, response_model=list[PostResponse]
+)
+def get_user_posts(user_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with the id: {user_id} doesn't exist!",
+        )
+
+    result = db.execute(select(models.Post).where(models.Post.user_id == user_id))
+    posts = result.scalars().all()
+    return posts
 
 
 @app.get("/categories", include_in_schema=False, name="categories")
@@ -85,23 +75,118 @@ def categories(request: Request):
 
 
 # Server API
-@app.get("/api/blog/post/{id}", include_in_schema=True)
-def get_post(id: int, request: Request):
-    for post in POSTS:
-        if post["id"] == id:
-            return {"post": post}
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="there is no post exist with that id",
+# GETS
+# Users
+@app.get("/api/users/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if user:
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"User with the id: {user_id} doesn't exist!",
+    )
+
+
+# User Posts
+@app.get("/api/users/{user_id}/posts", response_model=list[PostResponse])
+def get_user_posts(user_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with the id: {user_id} doesn't exist!",
+        )
+
+    result = db.execute(select(models.Post).where(models.Post.user_id == user_id))
+    posts = result.scalars().all()
+    return posts
+
+
+# POSTS
+# Users
+@app.post(
+    "/api/users",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserResponse,
+)
+def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
+    existing_user = db.execute(
+        select(models.User).where(
+            or_(
+                models.User.username == user.username,
+                models.User.email == user.email,
             )
+        )
+    ).scalar_one_or_none()
+
+    if existing_user:
+        field = "Username" if existing_user.username == user.username else "Email"
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"{field} already exists",
+        )
+
+    new_user = models.User(**(user.model_dump()))
+
+    db.add(new_user)
+
+    try:
+        db.commit()
+        db.refresh(new_user)
+        return new_user
+
+    except IntegrityError as e:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User already exists, {e._message}",
+        )
+
+
+# Posts
+@app.post(
+    "/api/posts",
+    status_code=status.HTTP_201_CREATED,
+    response_model=PostResponse,
+)
+def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]):
+
+    user = db.execute(
+        select(models.User).where(models.User.id == post.user_id)
+    ).scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=" User doesn't exists",
+        )
+
+    new_post = models.Post(**(post.model_dump()))
+
+    db.add(new_post)
+
+    db.commit()
+    db.refresh(new_post)
+    return new_post
+
 
 
 # Exceptions
 @app.exception_handler(status.HTTP_404_NOT_FOUND)
 def not_found(request: Request, exc: HTTPException):
-    message = "The page you're looking for doesn't exist or has been moved."
-    
+    message = (
+        exc.detail
+        if exc.detail
+        else "The page you're looking for doesn't exist or has been moved."
+    )
+
     if request.url.path.startswith("/api"):
         return JSONResponse(
             status_code=exc.status_code,
@@ -139,17 +224,20 @@ def handle_exceptions(request: Request, exc: StarletteHTTPException):
 
 @app.exception_handler(RequestValidationError)
 def handle_validation_errors(request: Request, exc: RequestValidationError):
-    if request.url.path.startswith('/api'):
+    if request.url.path.startswith("/api"):
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content={"detail": exc.errors()},
         )
-    
+
     error_msg = "Invalid request. Please check your input and try again."
-    
+
     return templates.TemplateResponse(
         request=request,
         name="errors/error.html",
-        context={"message": error_msg, "status_code": status.HTTP_422_UNPROCESSABLE_CONTENT},
+        context={
+            "message": error_msg,
+            "status_code": status.HTTP_422_UNPROCESSABLE_CONTENT,
+        },
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
     )
