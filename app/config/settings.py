@@ -6,7 +6,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = os.getenv("DATABASE_URL", "sqlite+:///./blog.db")
+    database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./blog.db")
 
     # Server
     port: int = int(os.getenv("PORT", "8000"))
