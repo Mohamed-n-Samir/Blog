@@ -40,10 +40,11 @@ def home_page(request: Request, db: Annotated[Session, Depends(get_db)]):
     return templates.TemplateResponse(request, "pages/index.html", {"posts": posts})
 
 
-@app.get("/blog/posts/{id}", include_in_schema=False, name="post")
+@app.get("/blog/posts/{post_id}", include_in_schema=False, name="post")
 def post_page(post_id: int, request: Request, db: Annotated[Session, Depends(get_db)]):
 
     result = db.execute(select(models.Post).where(models.Post.id == post_id))
+    print("after_resut")
     post = result.scalar_one_or_none()
     if post:
         return templates.TemplateResponse(request, "pages/post.html", {"post": post})
@@ -54,7 +55,7 @@ def post_page(post_id: int, request: Request, db: Annotated[Session, Depends(get
 @app.get(
     "/users/{user_id}/posts", include_in_schema=False, response_model=list[PostResponse]
 )
-def get_user_posts(user_id: int, db: Annotated[Session, Depends(get_db)]):
+def get_user_posts(user_id: int, request: Request,db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalar_one_or_none()
 
@@ -66,7 +67,8 @@ def get_user_posts(user_id: int, db: Annotated[Session, Depends(get_db)]):
 
     result = db.execute(select(models.Post).where(models.Post.user_id == user_id))
     posts = result.scalars().all()
-    return posts
+
+    return templates.TemplateResponse(request, "pages/user_posts.html", {"posts": posts, 'user': user})
 
 
 @app.get("/categories", include_in_schema=False, name="categories")
