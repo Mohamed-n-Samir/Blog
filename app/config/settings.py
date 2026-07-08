@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     host: str = os.getenv("HOST", "0.0.0.0")
     environment: str = os.getenv("ENVIRONMENT", "development")
     debug: bool = os.getenv("DEBUG", "true").lower() == "true"
+    app_mode: str = os.getenv("APP_MODE", "full")
 
 
     class Config:
