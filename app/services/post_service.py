@@ -13,4 +13,4 @@ class PostService:
         return await self.repo.get_all()
     
     async def get_all_by_user_id(self, user_id: int):
-        return await self.repo.get_all_by_user_id(user_id)
+        return await self.repo.get_all_by(user_id=user_id)
