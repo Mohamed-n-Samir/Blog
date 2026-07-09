@@ -44,9 +44,8 @@ async def post_page(post_id: int, request: Request, db: DBSession):
 )
 async def get_user_posts(user_id: int, request: Request, db: DBSession):
     user_service = UserService()
-    user = await user_service.get(user_id)
 
-    if not user:
+    if not user_service.user_exists(user_id):
         raise NotFoundException(
             message=f"User with the id: {user_id} doesn't exist!",
         )
@@ -54,7 +53,7 @@ async def get_user_posts(user_id: int, request: Request, db: DBSession):
     posts = await post_service.get_all_by_user_id(user_id)
 
     return templates.TemplateResponse(
-        request, "pages/user_posts.html", {"posts": posts, "user": user}
+        request, "pages/user_posts.html", {"posts": posts}
     )
 
 

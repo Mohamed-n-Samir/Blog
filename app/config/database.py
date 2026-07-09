@@ -53,4 +53,3 @@ async def close_db_connections():
 def get_db():
     with SessionLocal() as db:
         yield db
-

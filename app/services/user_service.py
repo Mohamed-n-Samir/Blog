@@ -8,3 +8,6 @@ class UserService:
 
     async def get(self, user_id: int):
         return await self.repo.get(user_id)
+    
+    async def user_exists(self, user_id:int):
+        return await self.repo.exists(user_id=user_id)
