@@ -24,10 +24,10 @@ class UserResponse(UserBase):
 class UnAuthUserResponse(UnAuthUserBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    username: str
     image_file: str | None
     bio: str | None
     image_path: str
-
 
 
 class PostBase(BaseModel):
@@ -38,11 +38,37 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     user_id: int # temp
 
-class PostResponse(PostBase):
+class PostGetResponse(PostBase):
     model_config = ConfigDict(from_attributes=True)
 
     id:int
     user_id: int
+    title: str
+    content: str
+    description: str
     created_at: datetime
     author: UnAuthUserResponse
+
+class PostPostResponse(PostBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id:int
+    user_id: int
+    title: str
+    content: str
+    description: str
+    created_at: datetime
+    # author: UnAuthUserResponse
+
+class TagBase(BaseModel):
+    name: str
+
+class TagCreate(TagBase):
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TagResponse(TagBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id:int
 

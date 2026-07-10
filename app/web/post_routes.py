@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Request, Depends, HTTPException, status
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import selectinload
 
 from app.config.database import async_get_db
 from app.constants.constant import ROOT_DIR
-from app.models import models
-from app.models.schemas import PostResponse
+from app.models.models import Post
+from app.models.schemas import PostGetResponse
 from app.services.post_service import PostService
 from app.services.user_service import UserService
 
@@ -25,7 +26,8 @@ post_router = APIRouter()
 @post_router.get("/blog", include_in_schema=False, name="blog")
 async def home_page(request: Request, db: DBSession):
     post_service = PostService(db)
-    posts = await post_service.get_all()
+    posts = await post_service.get_all(options=[selectinload(Post.author), selectinload(Post.tags)])
+    print(posts)
     return templates.TemplateResponse(request, "pages/index.html", {"posts": posts})
 
 
@@ -40,20 +42,20 @@ async def post_page(post_id: int, request: Request, db: DBSession):
 
 
 @post_router.get(
-    "/users/{user_id}/posts", include_in_schema=False, response_model=list[PostResponse]
+    "/users/{user_id}/posts", include_in_schema=False, response_model=list[PostGetResponse]
 )
 async def get_user_posts(user_id: int, request: Request, db: DBSession):
-    user_service = UserService()
+    user_service = UserService(db)
 
     if not user_service.user_exists(user_id):
         raise NotFoundException(
             message=f"User with the id: {user_id} doesn't exist!",
         )
-    post_service = PostService()
-    posts = await post_service.get_all_by_user_id(user_id)
+    post_service = PostService(db)
+    posts = await post_service.get_all_by_user_id(user_id,options=[selectinload(Post.author)])
 
     return templates.TemplateResponse(
-        request, "pages/user_posts.html", {"posts": posts}
+        request, "pages/user_posts.html", {"posts": posts, "user": posts[0].author}
     )
 
 

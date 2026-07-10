@@ -19,7 +19,6 @@ from app.middleware.exception_handler import (
     validation_exception_handler,
 )
 from app.models import models
-from app.models.schemas import PostCreate, PostResponse, UserCreate, UserResponse
 
 from app.config.database import Base, engine, create_tables, close_db_connections
 
@@ -28,6 +27,10 @@ from app.config.settings import settings
 
 from app.utils.exceptions import APPException
 from app.web.post_routes import post_router
+
+from app.api.post_routes import post_router as api_post_router
+from app.api.auth_routes import auth_router as api_auth_router
+from app.api.tag_routes import tag_router as api_tag_router
 
 from typing import Annotated
 
@@ -68,6 +71,9 @@ if settings.app_mode in ["full", "web"]:
 
 
 app.include_router(router=post_router)
+app.include_router(router=api_post_router)
+app.include_router(router=api_auth_router)
+app.include_router(router=api_tag_router)
 
 
 # Exception handlers

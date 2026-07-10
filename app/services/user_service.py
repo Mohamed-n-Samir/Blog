@@ -1,13 +1,65 @@
+from sqlalchemy import or_, and_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.user_repository import UserRepository
+
+from app.models.models import User
+
+from app.utils.exceptions import ConflictException
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 class UserService:
     def __init__(self, db: AsyncSession):
         self.repo = UserRepository(db)
 
     async def get(self, user_id: int):
-        return await self.repo.get(user_id)
+        return await self.repo.get(id=user_id)
     
     async def user_exists(self, user_id:int):
-        return await self.repo.exists(user_id=user_id)
+        return await self.repo.exists(id=user_id)
+    
+    async def add(self, user: User):
+        try:
+            user = await self.repo.add(user)
+            await self.repo.db.commit()
+            return user
+        except IntegrityError as e:
+            await self.repo.db.rollback()
+            logger.error("Error while trying to save the new_user", e._message)
+            raise ConflictException(f"User already exists, {e._message}")
+        
+    async def validate_unique_user(
+        self,
+        *,
+        username: str,
+        email: str,
+        exclude_user_id: int | None = None,
+    ) -> None:
+        conditions = [
+            or_(
+                User.username == username,
+                User.email == email,
+            )
+        ]
+
+        if exclude_user_id is not None:
+            conditions.append(User.id != exclude_user_id)
+
+        existing_user = await self.repo.find(
+            and_(*conditions),
+        )
+
+        print(existing_user)
+
+        if existing_user is None:
+            return
+
+        if existing_user.username == username:
+            raise ConflictException("Username already exists")
+
+        raise ConflictException("Email already exists")
+

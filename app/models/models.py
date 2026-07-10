@@ -2,7 +2,16 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Boolean, Column, Table
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Boolean,
+    Column,
+    Table,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config.database import Base
@@ -33,21 +42,18 @@ class User(Base):
         if self.image_file:
             return f"/media/profile_pics/{self.image_file}"
         return "/static/imgs/profile_pics/default.png"
-    
+
 
 post_tags = Table(
     "post_tags",
     Base.metadata,
-    Column("post_id", Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True),
-    Column("tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "post_id", Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column(
+        "tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True
+    ),
 )
-
-class Tag(Base):
-    __tablename__ = "tags"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(
-        String(100), unique=True, nullable=False, index=True
-    )
 
 
 class Post(Base):
@@ -63,7 +69,7 @@ class Post(Base):
         nullable=True,
         default=None,
     )
-    tags = relationship("Tag", secondary=post_tags, backref="posts")
+    tags: Mapped[list[Tag]] = relationship(secondary=post_tags, back_populates="posts")
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"), nullable=False, index=True
     )
@@ -85,3 +91,14 @@ class Post(Base):
         word_count = len(self.content.split())
         words_per_minute = 200
         return math.ceil(word_count / words_per_minute)
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(
+        String(100), unique=True, nullable=False, index=True
+    )
+
+    # Inverse relationship side
+    posts: Mapped[list[Post]] = relationship(secondary=post_tags, back_populates="tags")

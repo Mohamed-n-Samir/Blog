@@ -1,102 +1,63 @@
+from typing import Annotated
 
-# # Server API
-# # GETS
-# # Users
-# @app.get("/api/users/{user_id}", response_model=UserResponse)
-# def get_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
-#     result = db.execute(select(models.User).where(models.User.id == user_id))
-#     user = result.scalar_one_or_none()
+from fastapi import APIRouter, Depends, status
 
-#     if user:
-#         return user
-#     raise HTTPException(
-#         status_code=status.HTTP_404_NOT_FOUND,
-#         detail=f"User with the id: {user_id} doesn't exist!",
-#     )
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload 
 
+from app.models.models import Post, User
+from app.models.schemas import PostPostResponse, PostCreate
 
-# # User Posts
-# @app.get("/api/users/{user_id}/posts", response_model=list[PostResponse])
-# def get_user_posts(user_id: int, db: Annotated[Session, Depends(get_db)]):
-#     result = db.execute(select(models.User).where(models.User.id == user_id))
-#     user = result.scalar_one_or_none()
+from app.services.user_service import UserService
+from app.services.post_service import PostService
 
-#     if not user:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=f"User with the id: {user_id} doesn't exist!",
-#         )
+from app.utils.exceptions import NotFoundException
 
-#     result = db.execute(select(models.Post).where(models.Post.user_id == user_id))
-#     posts = result.scalars().all()
-#     return posts
+from app.config.database import async_get_db
 
 
-# # POSTS
-# # Users
-# @app.post(
-#     "/api/users",
-#     status_code=status.HTTP_201_CREATED,
-#     response_model=UserResponse,
-# )
-# def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
-#     existing_user = db.execute(
-#         select(models.User).where(
-#             or_(
-#                 models.User.username == user.username,
-#                 models.User.email == user.email,
-#             )
-#         )
-#     ).scalar_one_or_none()
-
-#     if existing_user:
-#         field = "Username" if existing_user.username == user.username else "Email"
-
-#         raise HTTPException(
-#             status_code=status.HTTP_409_CONFLICT,
-#             detail=f"{field} already exists",
-#         )
-
-#     new_user = models.User(**(user.model_dump()))
-
-#     db.add(new_user)
-
-#     try:
-#         db.commit()
-#         db.refresh(new_user)
-#         return new_user
-
-#     except IntegrityError as e:
-#         db.rollback()
-
-#         raise HTTPException(
-#             status_code=status.HTTP_409_CONFLICT,
-#             detail=f"User already exists, {e._message}",
-#         )
+DBSession = Annotated[AsyncSession, Depends(async_get_db)]
+post_router = APIRouter()
 
 
-# # Posts
-# @app.post(
-#     "/api/posts",
-#     status_code=status.HTTP_201_CREATED,
-#     response_model=PostResponse,
-# )
-# def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]):
+@post_router.get("/api/users/{user_id}/posts", response_model=list[PostPostResponse])
+async def get_user_posts(user_id: int, db: DBSession):
 
-#     user = db.execute(
-#         select(models.User).where(models.User.id == post.user_id)
-#     ).scalar_one_or_none()
+    user_service = UserService(db)
 
-#     if not user:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail=" User doesn't exists",
-#         )
+    if not await user_service.user_exists(id=user_id):
+        raise NotFoundException(f"user with id: {id} does not exist")
+    
+    post_service = PostService(db)
 
-#     new_post = models.Post(**(post.model_dump()))
+    posts = await post_service.get_all()
 
-#     db.add(new_post)
+    return posts
 
-#     db.commit()
-#     db.refresh(new_post)
-#     return new_post
+@post_router.post(
+    "/api/posts",
+    status_code=status.HTTP_201_CREATED,
+    response_model=PostPostResponse,
+)
+async def create_post(post: PostCreate, tags: list[str], db: DBSession):
+
+    user_service = UserService(db)
+
+    if not await user_service.user_exists(post.user_id):
+        raise NotFoundException(f"user with id: {post.user_id} does not exist")
+
+    new_post = Post(**(post.model_dump()))
+
+    post_service = PostService(db)
+
+    # for tag in tags:
+
+
+    saved_post = await post_service.add(new_post)
+    # post_author = await saved_post.awaitable_attrs.author
+
+    # print(f"Post created by {post_author.name}")
+        
+    return saved_post
+
+

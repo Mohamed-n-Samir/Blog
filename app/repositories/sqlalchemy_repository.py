@@ -192,6 +192,15 @@ class SQLAlchemyRepository(Generic[T]):
         await self.db.refresh(entity)
         return entity
 
+    async def add_all(self, entities: Sequence[T]) -> Sequence[T]:
+        self.db.add_all(entities)
+        await self.db.flush()
+
+        for entity in entities:
+            await self.db.refresh(entity)
+
+        return entities
+
     async def update(self, entity: T) -> T:
         merged_entity = await self.db.merge(entity)
         await self.db.flush()
