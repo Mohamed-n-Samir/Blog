@@ -91,6 +91,7 @@
             }
         </style>
     <link rel="stylesheet" href="{{ url_for("static", path='css/index.css')}}" />
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body class="min-h-screen flex flex-col">
@@ -98,6 +99,13 @@
     {% block content %} {% endblock content %}
 
     <script type="module" src="{{ url_for('static', path='js/navbar.js')}}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
+    </script>
 </body>
 
 </html>

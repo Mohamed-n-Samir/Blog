@@ -34,11 +34,14 @@ class PostBase(BaseModel):
     title: str = Field(min_length=1, max_length=100)
     description: str = Field(min_length=1)
     content: str = Field(min_length=1)
+    pinned: bool = False
+    image_file: Optional[str] = None
 
 class PostCreate(PostBase):
     user_id: int # temp
+    tags: list[str] = []
 
-class PostGetResponse(PostBase):
+class PostResponse(PostBase):
     model_config = ConfigDict(from_attributes=True)
 
     id:int
@@ -49,16 +52,6 @@ class PostGetResponse(PostBase):
     created_at: datetime
     author: UnAuthUserResponse
 
-class PostPostResponse(PostBase):
-    model_config = ConfigDict(from_attributes=True)
-
-    id:int
-    user_id: int
-    title: str
-    content: str
-    description: str
-    created_at: datetime
-    # author: UnAuthUserResponse
 
 class TagBase(BaseModel):
     name: str
