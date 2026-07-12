@@ -100,6 +100,17 @@
               </div>
             </div>
 
+            <!-- Category Selector -->
+            <div class="flex flex-col gap-1.5">
+              <label for="post-category" class="text-xs font-semibold font-display uppercase tracking-widest text-muted-foreground">Category</label>
+              <select id="post-category" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm cursor-pointer">
+                <option value="">-- Select Category --</option>
+                {% for category in categories %}
+                  <option value="{{ category.id }}" {% if post and post.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
             <!-- Pinned status -->
             <div class="flex items-center justify-between p-3 bg-panel-2 border border-border rounded-xl">
               <div>

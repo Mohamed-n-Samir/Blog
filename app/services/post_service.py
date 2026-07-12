@@ -30,11 +30,31 @@ class PostService:
     ):
         return await self.repo.get_all_by(user_id=user_id, options=options)
 
+    async def paginate(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 6,
+        conditions: list = [],
+        options = [
+            selectinload(Post.author),
+            selectinload(Post.tags),
+            selectinload(Post.category),
+        ]
+    ):
+        return await self.repo.paginate(
+            *conditions,
+            page=page,
+            page_size=page_size,
+            options=options,
+            order_by=[Post.pinned.desc(), Post.created_at.desc()]
+        )
+
     async def add(self, post: Post):
         try:
             new_post = await self.repo.add(
                 post,
-                attribute_names=["author"],
+                attribute_names=["author", "category"],
             )
             await self.repo.db.commit()
             return new_post

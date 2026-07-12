@@ -100,6 +100,7 @@ async def update_post(post_id: int, post: PostCreate, db: DBSession):
     existing_post.content = post_data.get("content", existing_post.content)
     existing_post.pinned = post_data.get("pinned", existing_post.pinned)
     existing_post.image_file = post_data.get("image_file", existing_post.image_file)
+    existing_post.category_id = post_data.get("category_id", existing_post.category_id)
 
     # Remove duplicates
     tag_names = list(set(tag_names))

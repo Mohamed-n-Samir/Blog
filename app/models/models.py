@@ -78,7 +78,12 @@ class Post(Base):
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
+    category_id: Mapped[int | None] = mapped_column(
+        ForeignKey("categories.id"), nullable=True, index=True
+    )
+
     author: Mapped[User] = relationship(back_populates="posts")
+    category: Mapped[Category | None] = relationship(back_populates="posts")
 
     @property
     def image_path(self) -> str:
@@ -102,3 +107,15 @@ class Tag(Base):
 
     # Inverse relationship side
     posts: Mapped[list[Post]] = relationship(secondary=post_tags, back_populates="tags")
+
+
+class Category(Base):
+    __tablename__ = "categories"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(
+        String(100), unique=True, nullable=False, index=True
+    )
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    posts: Mapped[list[Post]] = relationship(back_populates="category")

@@ -42,6 +42,22 @@ async def lifespan(app: FastAPI):
     print("🚀 Starting FastAPI Production Template...")
     if settings.environment == "development":
         await create_tables()  # Uncomment when database is set up
+        # Seed default categories if none exist
+        from app.config.database import AsyncSessionLocal
+        from app.models.models import Category
+        async with AsyncSessionLocal() as session:
+            result = await session.scalars(select(Category))
+            if not result.first():
+                categories = [
+                    Category(name="Backend", description="Server-side programming, databases, APIs, and microservices."),
+                    Category(name="Frontend", description="User interfaces, web frameworks, responsive layouts, and animations."),
+                    Category(name="Data Analytics", description="Data processing, statistics, visualization, and insights."),
+                    Category(name="DevOps", description="Continuous Integration/Deployment, cloud platforms, Docker, and monitoring."),
+                    Category(name="AI & Machine Learning", description="Neural networks, natural language processing, LLMs, and computer vision.")
+                ]
+                session.add_all(categories)
+                await session.commit()
+                print("✅ Seeded default categories")
     print(
         f"✅ Server running on {settings.host}:{settings.port} (Database disabled for demo)"
     )

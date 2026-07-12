@@ -1,0 +1,41 @@
+{% if total_pages > 1 %}
+<div class="flex items-center justify-center gap-2 mt-12 font-mono">
+    <!-- Previous Page -->
+    {% if page > 1 %}
+    <a href="?page={{ page - 1 }}{% for key, value in request.query_params.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+       class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-border bg-panel text-xs text-muted-foreground hover:text-foreground hover:border-accent/40 hover:bg-panel-2 transition cursor-pointer">
+        <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i> Prev
+    </a>
+    {% else %}
+    <span class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-border/50 bg-panel/30 text-xs text-muted-foreground/35 cursor-not-allowed select-none">
+        <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i> Prev
+    </span>
+    {% endif %}
+
+    <!-- Page Numbers -->
+    {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+        <span class="px-3.5 py-2 rounded-lg border border-accent bg-accent/15 text-xs font-bold text-accent select-none">
+            {{ p }}
+        </span>
+        {% else %}
+        <a href="?page={{ p }}{% for key, value in request.query_params.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+           class="px-3.5 py-2 rounded-lg border border-border bg-panel text-xs text-muted-foreground hover:text-foreground hover:border-accent/40 hover:bg-panel-2 transition cursor-pointer">
+            {{ p }}
+        </a>
+        {% endif %}
+    {% endfor %}
+
+    <!-- Next Page -->
+    {% if page < total_pages %}
+    <a href="?page={{ page + 1 }}{% for key, value in request.query_params.items() %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+       class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-border bg-panel text-xs text-muted-foreground hover:text-foreground hover:border-accent/40 hover:bg-panel-2 transition cursor-pointer">
+        Next <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+    </a>
+    {% else %}
+    <span class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-border/50 bg-panel/30 text-xs text-muted-foreground/35 cursor-not-allowed select-none">
+        Next <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+    </span>
+    {% endif %}
+</div>
+{% endif %}

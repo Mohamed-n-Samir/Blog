@@ -1,0 +1,14 @@
+<div class="panel p-10 flex flex-col items-center justify-center text-center max-w-lg mx-auto my-12 gap-4">
+    <div class="h-12 w-12 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent">
+        <i data-lucide="{{ icon | default('folder-open') }}" class="h-6 w-6 animate-pulse"></i>
+    </div>
+    <div>
+        <h3 class="text-sm font-semibold text-foreground font-display">{{ title | default('No content to display') }}</h3>
+        <p class="text-xs text-muted-foreground mt-1.5 leading-relaxed max-w-sm">{{ message | default('There are no items found in this section.') }}</p>
+    </div>
+    {% if action_url %}
+    <a href="{{ action_url }}" class="mt-2 py-2 px-4 rounded-lg bg-accent text-background font-semibold font-display text-xs hover:brightness-115 active:scale-95 transition cursor-pointer">
+        {{ action_text | default('Get Started') }}
+    </a>
+    {% endif %}
+</div>

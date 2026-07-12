@@ -1,37 +1,55 @@
 <header
     class="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl"
 >
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <a
-            href="{{ url_for('blog')}}"
-            class="flex shrink-0 items-center gap-2 font-display text-sm whitespace-nowrap"
-            ><span
-                class="grid h-7 w-7 place-items-center rounded-md bg-accent/15 text-accent"
-                >                <i data-lucide="terminal" class="h-4 w-4"></i></span
-            ><span class="font-semibold">Blog</span></a
-        >
-        <nav class="hidden items-center gap-1 min-[875px]:flex">
+    <div
+        class="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-6 py-4"
+    >
+        <!-- Left -->
+        <div class="justify-self-start">
             <a
-                href="{{ url_for('blog')}}"
+                href="{{ url_for('blog') }}"
+                class="flex shrink-0 items-center gap-2 font-display text-sm whitespace-nowrap"
+            >
+                <span
+                    class="grid h-7 w-7 place-items-center rounded-md bg-accent/15 text-accent"
+                >
+                    <i data-lucide="terminal" class="h-4 w-4"></i>
+                </span>
+                <span class="font-semibold">Blog</span>
+            </a>
+        </div>
+
+        <!-- Center -->
+        <nav class="hidden min-[875px]:flex items-center gap-1 justify-self-center">
+            <a
+                href="{{ url_for('blog') }}"
                 data-routes="/,/blog"
                 class="nav-link rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel hover:text-foreground"
-                ><span class="text-accent">&gt;</span> Blog</a
             >
+                <span class="text-accent">&gt;</span> Blog
+            </a>
+
             <a
-                href="{{ url_for('categories')}}"
+                href="{{ url_for('categories') }}"
                 data-routes="/categories"
                 class="nav-link rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel hover:text-foreground"
-                ><span class="text-accent">&gt;</span> Categories</a
             >
+                <span class="text-accent">&gt;</span> Categories
+            </a>
         </nav>
-        <div>
+
+        <!-- Right -->
+        <div class="justify-self-end flex items-center gap-2">
             <button
-                class="rounded-md border border-accent/40 px-3 py-1.5 text-xs text-accent transition-colors hover:bg-accent/20"
+                id="nav-register-btn"
+                class="rounded-md border border-accent/40 px-3 py-1.5 text-xs text-accent transition-colors hover:bg-accent/20 cursor-pointer"
             >
                 register()
             </button>
+
             <button
-                class="rounded-md border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs text-accent transition-colors hover:bg-accent/20"
+                id="nav-login-btn"
+                class="rounded-md border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs text-accent transition-colors hover:bg-accent/20 cursor-pointer"
             >
                 login()
             </button>

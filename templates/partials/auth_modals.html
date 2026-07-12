@@ -1,0 +1,77 @@
+<!-- Login Modal -->
+<div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md hidden opacity-0 transition-all duration-300">
+    <div class="panel w-full max-w-md p-6 md:p-8 bg-panel shadow-2xl relative transform scale-95 transition-all duration-300 flex flex-col gap-6">
+        <!-- Close Button -->
+        <button class="absolute top-4 right-4 text-muted-foreground hover:text-foreground close-modal-btn cursor-pointer">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+        
+        <!-- Header -->
+        <div class="text-center">
+            <h2 class="font-display text-xl font-bold text-foreground">welcome_back()</h2>
+            <p class="text-xs text-muted-foreground mt-1">Please enter your credentials to login</p>
+        </div>
+        
+        <!-- Form -->
+        <form class="flex flex-col gap-4" onsubmit="event.preventDefault();">
+            <div class="flex flex-col gap-1.5">
+                <label for="login-email" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Email / Username</label>
+                <input type="text" id="login-email" placeholder="user@example.com" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="login-password" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+            </div>
+            
+            <button type="submit" class="w-full mt-2 py-3 px-4 rounded-xl bg-accent text-background font-semibold font-display text-sm hover:brightness-110 active:scale-95 transition shadow-lg shadow-accent/20 cursor-pointer">
+                authenticate()
+            </button>
+        </form>
+        
+        <!-- Footer -->
+        <div class="text-center text-xs text-muted-foreground">
+            Don't have an account? <button class="text-accent hover:underline focus:outline-none font-bold cursor-pointer font-mono" id="to-register-btn">register()</button>
+        </div>
+    </div>
+</div>
+
+<!-- Register Modal -->
+<div id="register-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md hidden opacity-0 transition-all duration-300">
+    <div class="panel w-full max-w-md p-6 md:p-8 bg-panel shadow-2xl relative transform scale-95 transition-all duration-300 flex flex-col gap-6">
+        <!-- Close Button -->
+        <button class="absolute top-4 right-4 text-muted-foreground hover:text-foreground close-modal-btn cursor-pointer">
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+        
+        <!-- Header -->
+        <div class="text-center">
+            <h2 class="font-display text-xl font-bold text-foreground">create_account()</h2>
+            <p class="text-xs text-muted-foreground mt-1">Join the technical developer blog platform</p>
+        </div>
+        
+        <!-- Form -->
+        <form class="flex flex-col gap-4" onsubmit="event.preventDefault();">
+            <div class="flex flex-col gap-1.5">
+                <label for="register-username" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Username</label>
+                <input type="text" id="register-username" placeholder="developer" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="register-email" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Email Address</label>
+                <input type="email" id="register-email" placeholder="dev@example.com" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="register-password" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Password</label>
+                <input type="password" id="register-password" placeholder="••••••••" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+            </div>
+            
+            <button type="submit" class="w-full mt-2 py-3 px-4 rounded-xl bg-accent text-background font-semibold font-display text-sm hover:brightness-110 active:scale-95 transition shadow-lg shadow-accent/20 cursor-pointer">
+                initialize_profile()
+            </button>
+        </form>
+        
+        <!-- Footer -->
+        <div class="text-center text-xs text-muted-foreground">
+            Already have an account? <button class="text-accent hover:underline focus:outline-none font-bold cursor-pointer font-mono" id="to-login-btn">login()</button>
+        </div>
+    </div>
+</div>

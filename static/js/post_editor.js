@@ -9,6 +9,7 @@ const pinnedCheckbox = document.getElementById("post-pinned");
 const imageInput = document.getElementById("post-image");
 const imagePreview = document.getElementById("image-preview");
 const imagePlaceholder = document.getElementById("image-placeholder");
+const categorySelect = document.getElementById("post-category");
 
 const tagInput = document.getElementById("tag-input");
 const tagsWrapper = document.getElementById("tags-wrapper");
@@ -237,6 +238,7 @@ async function savePost() {
 
   const pinned = pinnedCheckbox.checked;
   const image_file = imageInput.value.trim() || null;
+  const category_id = categorySelect && categorySelect.value ? parseInt(categorySelect.value, 10) : null;
 
   const payload = {
     title,
@@ -244,6 +246,7 @@ async function savePost() {
     content,
     pinned,
     image_file,
+    category_id,
     user_id: userId,
     tags: activeTags
   };

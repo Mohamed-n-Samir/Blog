@@ -1,0 +1,114 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const loginModal = document.getElementById("login-modal");
+  const registerModal = document.getElementById("register-modal");
+  
+  const loginBtn = document.getElementById("nav-login-btn");
+  const registerBtn = document.getElementById("nav-register-btn");
+  
+  const toRegisterBtn = document.getElementById("to-register-btn");
+  const toLoginBtn = document.getElementById("to-login-btn");
+  
+  const closeBtns = document.querySelectorAll(".close-modal-btn");
+
+  // Helper to open a modal
+  function openModal(modal) {
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    // Force reflow
+    modal.offsetHeight;
+    modal.classList.add("opacity-100");
+    const panel = modal.querySelector(".panel");
+    if (panel) {
+      panel.classList.remove("scale-95");
+      panel.classList.add("scale-100");
+    }
+    document.body.style.overflow = "hidden"; // Prevent background scrolling
+  }
+
+  // Helper to close a modal
+  function closeModal(modal) {
+    if (!modal) return;
+    modal.classList.remove("opacity-100");
+    const panel = modal.querySelector(".panel");
+    if (panel) {
+      panel.classList.remove("scale-100");
+      panel.classList.add("scale-95");
+    }
+    
+    // Wait for transition to complete
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      // Restore background scrolling only if no other modals are open
+      if ((!loginModal || loginModal.classList.contains("hidden")) && 
+          (!registerModal || registerModal.classList.contains("hidden"))) {
+        document.body.style.overflow = "";
+      }
+    }, 300);
+  }
+
+  // Event Listeners for Opening
+  if (loginBtn) {
+    loginBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      openModal(loginModal);
+    });
+  }
+
+  if (registerBtn) {
+    registerBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      openModal(registerModal);
+    });
+  }
+
+  // Event Listeners for Switching
+  if (toRegisterBtn) {
+    toRegisterBtn.addEventListener("click", () => {
+      closeModal(loginModal);
+      setTimeout(() => {
+        openModal(registerModal);
+      }, 150);
+    });
+  }
+
+  if (toLoginBtn) {
+    toLoginBtn.addEventListener("click", () => {
+      closeModal(registerModal);
+      setTimeout(() => {
+        openModal(loginModal);
+      }, 150);
+    });
+  }
+
+  // Close buttons inside modals
+  closeBtns.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const modal = e.target.closest(".fixed");
+      if (modal) {
+        closeModal(modal);
+      }
+    });
+  });
+
+  // Close when clicking outside the modal content panel (backdrop click)
+  window.addEventListener("click", (e) => {
+    if (e.target === loginModal) {
+      closeModal(loginModal);
+    }
+    if (e.target === registerModal) {
+      closeModal(registerModal);
+    }
+  });
+
+  // Close when hitting escape key
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (loginModal && !loginModal.classList.contains("hidden")) {
+        closeModal(loginModal);
+      }
+      if (registerModal && !registerModal.classList.contains("hidden")) {
+        closeModal(registerModal);
+      }
+    }
+  });
+});

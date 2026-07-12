@@ -30,12 +30,24 @@ class UnAuthUserResponse(UnAuthUserBase):
     image_path: str
 
 
+class CategoryBase(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    description: Optional[str] = None
+
+class CategoryCreate(CategoryBase):
+    pass
+
+class CategoryResponse(CategoryBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+
 class PostBase(BaseModel):
     title: str = Field(min_length=1, max_length=100)
     description: str = Field(min_length=1)
     content: str = Field(min_length=1)
     pinned: bool = False
     image_file: Optional[str] = None
+    category_id: Optional[int] = None
 
 class PostCreate(PostBase):
     user_id: int # temp
@@ -51,6 +63,7 @@ class PostResponse(PostBase):
     description: str
     created_at: datetime
     author: UnAuthUserResponse
+    category: Optional[CategoryResponse] = None
 
 
 class TagBase(BaseModel):
