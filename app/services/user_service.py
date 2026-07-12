@@ -63,3 +63,13 @@ class UserService:
 
         raise ConflictException("Email already exists")
 
+    async def update(self, user: User) -> User:
+        try:
+            updated_user = await self.repo.update(user)
+            await self.repo.db.commit()
+            return updated_user
+        except IntegrityError as e:
+            await self.repo.db.rollback()
+            logger.error("Error while trying to update user profile", e)
+            raise ConflictException(f"Failed to update profile: {e._message}")
+

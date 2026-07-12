@@ -5,6 +5,8 @@ from typing import Optional
 class UserBase(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: EmailStr = Field(max_length=320)
+    first_name: Optional[str] = Field(None, max_length=50)
+    last_name: Optional[str] = Field(None, max_length=50)
 
 class UnAuthUserBase(BaseModel):
     username: str = Field(min_length=3, max_length=50)
@@ -12,6 +14,12 @@ class UnAuthUserBase(BaseModel):
 class UserCreate(UserBase):
     pass
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = Field(None, max_length=320)
+    first_name: Optional[str] = Field(None, max_length=50)
+    last_name: Optional[str] = Field(None, max_length=50)
+    bio: Optional[str] = None
 
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
@@ -25,6 +33,8 @@ class UnAuthUserResponse(UnAuthUserBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     username: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     image_file: str | None
     bio: str | None
     image_path: str

@@ -36,18 +36,18 @@ class PostService:
         page: int = 1,
         page_size: int = 6,
         conditions: list = [],
-        options = [
+        options=[
             selectinload(Post.author),
             selectinload(Post.tags),
             selectinload(Post.category),
-        ]
+        ],
     ):
         return await self.repo.paginate(
             *conditions,
             page=page,
             page_size=page_size,
             options=options,
-            order_by=[Post.pinned.desc(), Post.created_at.desc()]
+            order_by=[Post.pinned.desc(), Post.created_at.desc()],
         )
 
     async def add(self, post: Post):
@@ -65,7 +65,7 @@ class PostService:
 
     async def update(self, post: Post):
         try:
-            post = await self.repo.update(post)
+            post = await self.repo.update(post, attribute_names=["author", "category"])
             await self.repo.db.commit()
             return post
         except IntegrityError as e:

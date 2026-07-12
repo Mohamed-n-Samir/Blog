@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, HTTPException, status
+from fastapi import APIRouter, Request, Depends, HTTPException, status, Form
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import selectinload
 
@@ -184,5 +184,79 @@ async def new_post_page(user_id: int, request: Request, db: DBSession):
             "posts": posts,
             "user": user,
             "categories": categories,
+        }
+    )
+
+
+@post_router.get("/users/{user_id}/profile", include_in_schema=False, name="user_profile")
+async def user_profile_page(user_id: int, request: Request, db: DBSession):
+    user_service = UserService(db)
+    user = await user_service.get(user_id)
+    if not user:
+        raise NotFoundException(message=f"User with the id: {user_id} doesn't exist!")
+    
+    return templates.TemplateResponse(
+        request,
+        "pages/user_profile.html",
+        {
+            "user": user,
+            "error": None,
+            "success": None,
+        }
+    )
+
+
+@post_router.post("/users/{user_id}/profile", include_in_schema=False)
+async def update_profile(
+    user_id: int,
+    request: Request,
+    db: DBSession,
+    username: str = Form(...),
+    email: str = Form(...),
+    first_name: str | None = Form(None),
+    last_name: str | None = Form(None),
+    bio: str | None = Form(None)
+):
+    user_service = UserService(db)
+    user = await user_service.get(user_id)
+    if not user:
+        raise NotFoundException(message=f"User with the id: {user_id} doesn't exist!")
+    
+    username = username.strip()
+    email = email.strip()
+    first_name = first_name.strip() if first_name else None
+    last_name = last_name.strip() if last_name else None
+    bio = bio.strip() if bio else None
+    
+    error_msg = None
+    success_msg = None
+    
+    try:
+        # Validate uniqueness if username or email changed
+        if username != user.username or email != user.email:
+            await user_service.validate_unique_user(
+                username=username,
+                email=email,
+                exclude_user_id=user_id
+            )
+        
+        user.username = username
+        user.email = email
+        user.first_name = first_name
+        user.last_name = last_name
+        user.bio = bio
+        
+        await user_service.update(user)
+        success_msg = "Profile updated successfully!"
+    except Exception as e:
+        error_msg = str(e)
+        
+    return templates.TemplateResponse(
+        request,
+        "pages/user_profile.html",
+        {
+            "user": user,
+            "error": error_msg,
+            "success": success_msg,
         }
     )

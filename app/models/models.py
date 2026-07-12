@@ -25,6 +25,8 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False)
+    first_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text)
     image_file: Mapped[str | None] = mapped_column(
         String(320),

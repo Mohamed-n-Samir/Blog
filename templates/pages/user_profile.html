@@ -1,0 +1,116 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Profile Settings | {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+  
+  <!-- Back link -->
+  <div class="flex items-center justify-between">
+    <a href="{{ url_for('get_user_posts', user_id=user.id) }}" class="inline-flex items-center gap-2 rounded-md border border-border bg-panel px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel-2 hover:text-foreground cursor-pointer">
+      <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i> Back to Posts
+    </a>
+    <span class="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">profile_settings()</span>
+  </div>
+
+  <!-- Messages notifications -->
+  {% if success %}
+    <div class="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono flex items-center gap-2">
+      <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+      <span>{{ success }}</span>
+    </div>
+  {% endif %}
+  {% if error %}
+    <div class="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 text-xs font-mono flex items-center gap-2">
+      <i data-lucide="alert-circle" class="w-4 h-4 text-rose-400"></i>
+      <span>{{ error }}</span>
+    </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
+    <!-- Left Panel: Avatar & Info -->
+    <aside class="flex flex-col gap-4">
+      <div class="panel p-6 flex flex-col items-center text-center gap-4">
+        <div class="relative group">
+          <img src="{{ user.image_path }}" alt="{{ user.username }}" class="w-28 h-28 rounded-full object-cover border-2 border-border/80 shadow-xl">
+          <div class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+            <i data-lucide="camera" class="w-5 h-5 text-white"></i>
+          </div>
+        </div>
+        
+        <div>
+          <h2 class="text-sm font-bold text-foreground font-mono">@{{ user.username }}</h2>
+          <p class="text-[10px] text-muted-foreground mt-0.5">
+            {% if user.first_name or user.last_name %}
+              {{ user.first_name | default('') }} {{ user.last_name | default('') }}
+            {% else %}
+              Developer Profile
+            {% endif %}
+          </p>
+        </div>
+        
+        <div class="w-full border-t border-border/60 pt-4 flex flex-col gap-2.5 font-mono text-[10px] text-left text-muted-foreground">
+          <div class="flex justify-between">
+            <span>member_since:</span>
+            <span class="text-foreground font-semibold">{{ user.created_at.strftime('%Y-%m-%d') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>profile_id:</span>
+            <span class="text-foreground font-semibold">{{ user.id }}</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Panel: Edit Settings Form -->
+    <section class="panel p-6 md:p-8 flex flex-col gap-6">
+      <div>
+        <h2 class="font-display text-lg font-bold text-foreground">update_account_info()</h2>
+        <p class="text-xs text-muted-foreground mt-1">Keep your profile settings and information up to date.</p>
+      </div>
+
+      <form action="{{ url_for('update_profile', user_id=user.id) }}" method="POST" class="flex flex-col gap-4">
+        
+        <!-- Name Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="first-name" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">First Name</label>
+            <input type="text" id="first-name" name="first_name" value="{{ user.first_name | default('') }}" placeholder="e.g. John" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="last-name" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Last Name</label>
+            <input type="text" id="last-name" name="last_name" value="{{ user.last_name | default('') }}" placeholder="e.g. Doe" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+          </div>
+        </div>
+
+        <!-- Username & Email -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label for="username" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Username</label>
+            <input type="text" id="username" name="username" value="{{ user.username }}" placeholder="username" required class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label for="email" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Email Address</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" placeholder="developer@example.com" required class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+          </div>
+        </div>
+
+        <!-- Bio text -->
+        <div class="flex flex-col gap-1.5">
+          <label for="bio" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Bio / Description</label>
+          <textarea id="bio" name="bio" rows="4" placeholder="Tell the world about yourself, your technical skills, and what you build..." class="w-full p-3 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm leading-relaxed transition-colors">{{ user.bio | default('') }}</textarea>
+        </div>
+
+        <!-- Submit btn -->
+        <div class="border-t border-border pt-6 flex justify-end">
+          <button type="submit" class="py-2.5 px-6 rounded-xl bg-accent text-background font-semibold font-display text-xs hover:brightness-110 active:scale-95 transition shadow-lg shadow-accent/20 cursor-pointer">
+            commit_changes()
+          </button>
+        </div>
+        
+      </form>
+    </section>
+  </div>
+
+</div>
+{% endblock content %}

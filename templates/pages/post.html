@@ -6,29 +6,34 @@
 <div class="mx-auto max-w-7xl px-6 py-10">
     <div class="flex items-center justify-between mb-6"><a
             class="inline-flex items-center gap-2 rounded-md border border-border bg-panel px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-panel-2 hover:text-foreground"
-            href="{{url_for('blog')}}" data-discover="true">            <i data-lucide="arrow-left" class="h-3 w-3"></i> Back to Blog</a>
-            {% if post.pinned %}
+            href="{{url_for('blog')}}" data-discover="true"> <i data-lucide="arrow-left" class="h-3 w-3"></i> Back to
+            Blog</a>
+        {% if post.pinned %}
         <span
-            class="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] uppercase font-mono tracking-wider text-accent"><i data-lucide="pin" class="h-3 w-3"></i> Pinned</span>
-            {% endif %}
+            class="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[10px] uppercase font-mono tracking-wider text-accent"><i
+                data-lucide="pin" class="h-3 w-3"></i> Pinned</span>
+        {% endif %}
     </div>
     <div class="relative mb-10 overflow-hidden panel min-h-[300px] md:min-h-[380px] flex items-end p-6 md:p-10">
-        <div class="absolute inset-0 z-0"><img
-                alt="{{ post.title }}"
-                class="w-full h-full object-cover" src="{{ post.image_path }}">
+        <div class="absolute inset-0 z-0"><img alt="{{ post.title }}" class="w-full h-full object-cover"
+                src="{{ post.image_path }}">
             <div class="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/55 z-10">
             </div>
         </div>
         <div class="relative z-20 w-full">
             <div class="mb-4 flex flex-wrap gap-2 text-[10px] md:text-xs font-mono"><span
-                    class="flex items-center gap-1.5 rounded bg-background/80 backdrop-blur border border-border px-2.5 py-1 text-muted-foreground"><i data-lucide="calendar" class="h-3.5 w-3.5 text-accent"></i> {{ post.created_at }} </span><span
-                    class="flex items-center gap-1.5 rounded bg-background/80 backdrop-blur border border-border px-2.5 py-1 text-muted-foreground"><i data-lucide="clock" class="h-3.5 w-3.5 text-accent"></i> {{ post.read_time }}</span>
-                    {% if post.pinned %}
-                    <span
-                    class="flex items-center gap-1.5 rounded bg-accent/95 px-2.5 py-1 text-black font-semibold uppercase tracking-wider"><i data-lucide="pin" class="h-3.5 w-3.5"></i> Pinned</span>
-                    {% endif %}
-                </div>
-            <h1 class="font-display text-xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">{{ post.title }}</h1>
+                    class="flex items-center gap-1.5 rounded bg-background/80 backdrop-blur border border-border px-2.5 py-1 text-muted-foreground"><i
+                        data-lucide="calendar" class="h-3.5 w-3.5 text-accent"></i> {{ post.created_at.strftime('%b %d, %Y') }} </span><span
+                    class="flex items-center gap-1.5 rounded bg-background/80 backdrop-blur border border-border px-2.5 py-1 text-muted-foreground"><i
+                        data-lucide="clock" class="h-3.5 w-3.5 text-accent"></i> {{ post.reading_time_minutes }} min</span>
+                {% if post.pinned %}
+                <span
+                    class="flex items-center gap-1.5 rounded bg-accent/95 px-2.5 py-1 text-black font-semibold uppercase tracking-wider"><i
+                        data-lucide="pin" class="h-3.5 w-3.5"></i> Pinned</span>
+                {% endif %}
+            </div>
+            <h1 class="font-display text-xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
+                {{ post.title }}</h1>
             <p class="text-xs md:text-sm text-muted-foreground leading-relaxed max-w-3xl">{{ post.description }}</p>
         </div>
     </div>
@@ -41,11 +46,14 @@
         </div>
         <div class="hidden lg:block">
             <div class="sticky top-24 panel p-5 space-y-4">
-                <div class="flex items-center gap-2 text-[10px] font-mono text-accent uppercase tracking-wider"><i data-lucide="sparkles" class="h-4 w-4"></i><span>Reader Controls</span></div>
+                <div class="flex items-center gap-2 text-[10px] font-mono text-accent uppercase tracking-wider"><i
+                        data-lucide="sparkles" class="h-4 w-4"></i><span>Reader Controls</span></div>
                 <p class="text-xs font-semibold text-foreground leading-snug line-clamp-3">{{ post.title }}</p>
                 <div class="border-t border-border pt-4 space-y-2 font-mono"><button
-                        class="flex w-full items-center justify-center gap-2 rounded-md border border-accent/40 bg-accent/10 px-3 py-2 text-[11px] text-accent transition-colors hover:bg-accent/20 cursor-pointer"><i data-lucide="copy" class="h-3.5 w-3.5"></i>Copy Article Link</button><button
-                        class="flex w-full items-center justify-center gap-2 rounded-md border border-border bg-panel px-3 py-2 text-[11px] text-muted-foreground transition-colors hover:bg-panel-2 hover:text-foreground cursor-pointer"><i data-lucide="arrow-up" class="h-3.5 w-3.5"></i>Scroll To Top</button></div>
+                        class="flex w-full items-center justify-center gap-2 rounded-md border border-accent/40 bg-accent/10 px-3 py-2 text-[11px] text-accent transition-colors hover:bg-accent/20 cursor-pointer"><i
+                            data-lucide="copy" class="h-3.5 w-3.5"></i>Copy Article Link</button><button
+                        class="flex w-full items-center justify-center gap-2 rounded-md border border-border bg-panel px-3 py-2 text-[11px] text-muted-foreground transition-colors hover:bg-panel-2 hover:text-foreground cursor-pointer"><i
+                            data-lucide="arrow-up" class="h-3.5 w-3.5"></i>Scroll To Top</button></div>
             </div>
         </div>
     </div>
@@ -57,7 +65,7 @@
         document.querySelectorAll('pre.ql-syntax').forEach((block) => {
             // Escape any HTML markup inside the code block to avoid security warnings
             block.textContent = block.textContent;
-            
+
             hljs.highlightElement(block);
             if (!block.getAttribute('data-language')) {
                 const classes = Array.from(block.classList);

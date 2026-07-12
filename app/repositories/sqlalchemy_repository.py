@@ -233,10 +233,26 @@ class SQLAlchemyRepository(Generic[T]):
 
         return entities
 
-    async def update(self, entity: T) -> T:
-        merged_entity = await self.db.merge(entity)
+    # async def update(self, entity: T) -> T:
+    #     merged_entity = await self.db.merge(entity)
+    #     await self.db.flush()
+    #     return merged_entity
+    
+    async def update(
+        self,
+        entity: T,
+        *,
+        attribute_names: Sequence[str] | None = None,
+    ) -> T:
+        entity = await self.db.merge(entity)
         await self.db.flush()
-        return merged_entity
+
+        await self.db.refresh(
+            entity,
+            attribute_names=attribute_names,
+        )
+
+        return entity
 
     async def delete(self, id: Any) -> bool:
         stmt = sqlalchemy_delete(self.model).where(self._pk == id)
