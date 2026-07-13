@@ -10,6 +10,8 @@ const imageInput = document.getElementById("post-image");
 const imagePreview = document.getElementById("image-preview");
 const imagePlaceholder = document.getElementById("image-placeholder");
 const categorySelect = document.getElementById("post-category");
+const btnUploadImage = document.getElementById("btn-upload-image");
+const postImageFile = document.getElementById("post-image-file");
 
 const tagInput = document.getElementById("tag-input");
 const tagsWrapper = document.getElementById("tags-wrapper");
@@ -121,6 +123,58 @@ function setupEventListeners() {
     updateImagePreview(e.target.value.trim());
   });
 
+  // Handle post featured image upload
+  if (btnUploadImage && postImageFile) {
+    btnUploadImage.addEventListener("click", () => {
+      postImageFile.click();
+    });
+
+    postImageFile.addEventListener("change", async () => {
+      const file = postImageFile.files[0];
+      if (!file) return;
+
+      // Client-side GIF validation
+      if (file.type === "image/gif" || file.name.toLowerCase().endsWith(".gif")) {
+        showToast("GIF images are not allowed. Please choose another format (PNG, JPG, WEBP, AVIF).", "warning");
+        postImageFile.value = "";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        btnUploadImage.disabled = true;
+        btnUploadImage.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Uploading...`;
+        lucide.createIcons();
+
+        const res = await fetch("/api/upload?folder=blog_images", {
+          method: "POST",
+          body: formData
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || err.message || "Failed to upload image");
+        }
+
+        const data = await res.json();
+        // Store only the filename in the image field
+        imageInput.value = data.filename;
+        // Update live preview with absolute path for immediate feedback
+        updateImagePreview(data.url);
+        showToast("Image uploaded successfully!");
+      } catch (err) {
+        showToast(err.message, "warning");
+      } finally {
+        btnUploadImage.disabled = false;
+        btnUploadImage.innerHTML = `<i data-lucide="upload" class="w-4 h-4"></i> Upload`;
+        lucide.createIcons();
+        postImageFile.value = "";
+      }
+    });
+  }
+
   // Client-side search filtering
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
@@ -192,7 +246,12 @@ function renderTags() {
 
 function updateImagePreview(url) {
   if (url) {
-    imagePreview.src = url;
+    // If it's a raw filename rather than a URL or absolute path, resolve it to media path
+    let src = url;
+    if (url && !url.startsWith("http") && !url.startsWith("/")) {
+      src = "/media/blog_images/" + url;
+    }
+    imagePreview.src = src;
     imagePreview.classList.remove("hidden");
     imagePlaceholder.classList.add("hidden");
     imagePreview.onerror = () => {

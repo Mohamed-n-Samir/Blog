@@ -31,8 +31,8 @@
     <!-- Left Panel: Avatar & Info -->
     <aside class="flex flex-col gap-4">
       <div class="panel p-6 flex flex-col items-center text-center gap-4">
-        <div class="relative group">
-          <img src="{{ user.image_path }}" alt="{{ user.username }}" class="w-28 h-28 rounded-full object-cover border-2 border-border/80 shadow-xl">
+        <div class="relative group cursor-pointer" id="avatar-trigger" title="Click to upload a new avatar">
+          <img id="avatar-preview" src="{{ user.image_path }}" alt="{{ user.username }}" class="w-28 h-28 rounded-full object-cover border-2 border-border/80 shadow-xl">
           <div class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
             <i data-lucide="camera" class="w-5 h-5 text-white"></i>
           </div>
@@ -69,7 +69,8 @@
         <p class="text-xs text-muted-foreground mt-1">Keep your profile settings and information up to date.</p>
       </div>
 
-      <form action="{{ url_for('update_profile', user_id=user.id) }}" method="POST" class="flex flex-col gap-4">
+      <form action="{{ url_for('update_profile', user_id=user.id) }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+        <input type="file" id="avatar-input" name="image" accept="image/*" class="hidden">
         
         <!-- Name Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -113,4 +114,35 @@
   </div>
 
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const trigger = document.getElementById('avatar-trigger');
+    const input = document.getElementById('avatar-input');
+    const preview = document.getElementById('avatar-preview');
+
+    if (trigger && input && preview) {
+      trigger.addEventListener('click', function() {
+        input.click();
+      });
+
+      input.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+          // Client-side GIF validation
+          if (file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')) {
+            alert('GIF images are not allowed. Please choose another format (PNG, JPG, WEBP, AVIF).');
+            this.value = '';
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            preview.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+  });
+</script>
 {% endblock content %}

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Request, Depends, HTTPException, status, Form, File, UploadFile
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import selectinload
 
@@ -8,6 +8,7 @@ from app.models.models import Post
 from app.models.schemas import PostResponse
 from app.services.post_service import PostService
 from app.services.user_service import UserService
+from app.utils.image_uploader import save_uploaded_image
 
 from typing import Annotated
 
@@ -215,7 +216,8 @@ async def update_profile(
     email: str = Form(...),
     first_name: str | None = Form(None),
     last_name: str | None = Form(None),
-    bio: str | None = Form(None)
+    bio: str | None = Form(None),
+    image: UploadFile = File(None)
 ):
     user_service = UserService(db)
     user = await user_service.get(user_id)
@@ -232,6 +234,11 @@ async def update_profile(
     success_msg = None
     
     try:
+        # Save image file if uploaded
+        if image and image.filename:
+            uploaded_filename = await save_uploaded_image(image, "profile_pics")
+            user.image_file = uploaded_filename
+        
         # Validate uniqueness if username or email changed
         if username != user.username or email != user.email:
             await user_service.validate_unique_user(
