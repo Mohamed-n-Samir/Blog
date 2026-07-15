@@ -8,36 +8,36 @@ class UserBase(BaseModel):
     first_name: Optional[str] = Field(None, max_length=50)
     last_name: Optional[str] = Field(None, max_length=50)
 
-class UnAuthUserBase(BaseModel):
-    username: str = Field(min_length=3, max_length=50)
 
 class UserCreate(UserBase):
-    pass
+    password: str = Field(min_length=8)
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = Field(None, max_length=320)
     first_name: Optional[str] = Field(None, max_length=50)
     last_name: Optional[str] = Field(None, max_length=50)
-    bio: Optional[str] = None
-
-class UserResponse(UserBase):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
     image_file: str | None
     bio: str | None
-    image_path: str
 
 
-class UnAuthUserResponse(UnAuthUserBase):
+class UserPublicResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    username: str
+    username: str = Field(min_length=3, max_length=50)
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     image_file: str | None
     bio: str | None
     image_path: str
+
+class UserPrivateResponse(UserPublicResponse):
+    email:EmailStr = Field(max_length=320)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
 class CategoryBase(BaseModel):
@@ -72,7 +72,7 @@ class PostResponse(PostBase):
     content: str
     description: str
     created_at: datetime
-    author: UnAuthUserResponse
+    author: UserPublicResponse
     category: Optional[CategoryResponse] = None
 
 

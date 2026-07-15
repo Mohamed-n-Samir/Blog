@@ -1,3 +1,4 @@
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 import os
@@ -15,6 +16,10 @@ class Settings(BaseSettings):
     debug: bool = os.getenv("DEBUG", "true").lower() == "true"
     app_mode: str = os.getenv("APP_MODE", "full")
 
+    # JWT (Single Token System)
+    secret_key: SecretStr = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+    algorithm: str = os.getenv("ALGORITHM", "HS256")
+    access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))  # 7 days
 
     class Config:
         env_file = ".env"
