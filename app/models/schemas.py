@@ -1,6 +1,12 @@
+import enum
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 from typing import Optional
+
+# Enums
+class UserRole(enum.Enum):
+    USER = "USER"
+    ADMIN = "ADMIN"
 
 class UserBase(BaseModel):
     username: str = Field(min_length=3, max_length=50)
@@ -10,6 +16,10 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    password: str = Field(min_length=8)
+
+class UserLogin(BaseModel):
+    email: EmailStr = Field(max_length=320)
     password: str = Field(min_length=8)
 
 class UserUpdate(BaseModel):

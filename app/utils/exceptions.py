@@ -12,17 +12,19 @@ class APPException(HTTPException):
         status_code: int,
         message: str = "An error occurred",
         details: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, Any]] = None,
     ):
         self.message = message
         self.details = details or {}
+        self.headers = headers or {}
         super().__init__(status_code=status_code, detail=message)
 
 
 class AuthenticationException(APPException):
     """Authentication related errors"""
 
-    def __init__(self, message: str = "Authentication failed"):
-        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, message=message)
+    def __init__(self, message: str = "Authentication failed", details: dict= {}, headers: dict = {"WWW-Authenticate": "Bearer"}):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, message=message, details=details, headers=headers)
 
 
 class AuthorizationException(APPException):

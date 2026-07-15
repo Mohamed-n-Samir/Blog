@@ -11,7 +11,7 @@ from app.utils.exceptions import AuthenticationException
 
 password_hash = PasswordHash.recommended()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/token")
 
 def hash_password(password: str) -> str:
     return password_hash.hash(password)
@@ -44,7 +44,7 @@ def verify_user_token(token: str) -> dict[str, Any]:
     try:
         payload = jwt.decode(
             token,
-            settings.secret_key,
+            settings.secret_key.get_secret_value(),
             algorithms=[settings.algorithm],
         )
 

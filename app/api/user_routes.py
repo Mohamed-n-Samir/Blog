@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.models import User
-from app.models.schemas import UserPrivateResponse, UserCreate
+from app.models.schemas import UserPrivateResponse, UserCreate, UserPublicResponse
 from app.services.user_service import UserService
+from app.utils.auth import hash_password
 from app.utils.exceptions import NotFoundException
 from app.config.database import async_get_db
 
@@ -14,7 +15,7 @@ DBSession = Annotated[AsyncSession, Depends(async_get_db)]
 user_router = APIRouter()
 
 
-@user_router.get("/api/users/{user_id}", response_model=UserPrivateResponse)
+@user_router.get("/api/users/{user_id}", response_model=UserPublicResponse)
 async def get_user(user_id: int, db: DBSession):
     user_service = UserService(db)
     user = await user_service.get(user_id)
@@ -36,7 +37,14 @@ async def create_user(new_user: UserCreate, db: DBSession):
         username=new_user.username, email=new_user.email
     )
 
-    new_user_model = User(**(new_user.model_dump()))
+    # new_user_model = User(**(new_user.model_dump()))
+    new_user_model = User(
+        username = new_user.username,
+        email = new_user.email.lower(),
+        first_name = new_user.first_name,
+        last_name = new_user.last_name,
+        password_hash = hash_password(new_user.password)
+    )
     committed_user = await user_service.add(new_user_model)
 
     return committed_user

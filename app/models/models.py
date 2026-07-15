@@ -11,12 +11,15 @@ from sqlalchemy import (
     Boolean,
     Column,
     Table,
+    Enum as SqlEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config.database import Base
 
 import math
+
+from app.models.schemas import UserRole
 
 
 class User(Base):
@@ -29,6 +32,12 @@ class User(Base):
     first_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text)
+    role: Mapped[UserRole] = mapped_column(
+        SqlEnum(UserRole),
+        default=UserRole.USER,
+    )
+    is_email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+
     image_file: Mapped[str | None] = mapped_column(
         String(320),
         nullable=True,
