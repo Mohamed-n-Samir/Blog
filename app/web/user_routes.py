@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Request, Depends, Form, File, UploadFile, HTTPException
+from fastapi import APIRouter, Request, Depends, Form, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config.database import async_get_db
@@ -9,7 +9,7 @@ from app.models.models import Post
 from app.models.schemas import PostResponse
 from app.services.post_service import PostService
 from app.services.user_service import UserService
-from app.utils.exceptions import NotFoundException
+from app.utils.exceptions import NotFoundException, AuthenticationException
 from app.utils.image_uploader import save_uploaded_image
 from app.config.templates import templates
 
@@ -51,7 +51,7 @@ async def get_user_posts(user_id: int, request: Request, db: DBSession, page: in
 async def user_profile_page(request: Request, db: DBSession):
     current_user = request.state.user
     if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise AuthenticationException("Not authenticated")
     
     return templates.TemplateResponse(
         request,
@@ -77,7 +77,7 @@ async def update_profile(
 ):
     current_user = request.state.user
     if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise AuthenticationException("Not authenticated")
     
     username = username.strip()
     email = email.strip()

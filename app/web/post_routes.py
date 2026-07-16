@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -9,7 +9,7 @@ from app.constants.constant import ROOT_DIR
 from app.models.models import Post
 from app.services.post_service import PostService
 from app.services.user_service import UserService
-from app.utils.exceptions import NotFoundException
+from app.utils.exceptions import NotFoundException, AuthenticationException, AuthorizationException
 from app.config.templates import templates
 
 DBSession = Annotated[AsyncSession, Depends(async_get_db)]
@@ -35,7 +35,7 @@ async def edit_post_page(post_id: int, request: Request, db: DBSession):
     
     current_user = request.state.user
     if not current_user or current_user.id != post.user_id:
-        raise HTTPException(status_code=403, detail="You are not authorized to edit this post.")
+        raise AuthorizationException("You are not authorized to edit this post.")
         
     posts = await post_service.get_all_by_user_id(post.user_id, options=[selectinload(Post.tags)])
     
@@ -59,7 +59,7 @@ async def edit_post_page(post_id: int, request: Request, db: DBSession):
 async def new_post_page(request: Request, db: DBSession):
     current_user = request.state.user
     if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise AuthenticationException("Not authenticated")
         
     post_service = PostService(db)
     posts = await post_service.get_all_by_user_id(current_user.id, options=[selectinload(Post.tags)])
