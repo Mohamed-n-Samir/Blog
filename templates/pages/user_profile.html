@@ -69,7 +69,7 @@
         <p class="text-xs text-muted-foreground mt-1">Keep your profile settings and information up to date.</p>
       </div>
 
-      <form action="{{ url_for('update_profile', user_id=user.id) }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+      <form action="{{ url_for('update_profile') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
         <input type="file" id="avatar-input" name="image" accept="image/*" class="hidden">
         
         <!-- Name Grid -->

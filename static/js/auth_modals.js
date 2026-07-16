@@ -111,4 +111,95 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // Handle Login Form Submission
+  const loginForm = document.getElementById("login-form");
+  const loginErrorContainer = document.getElementById("login-error-container");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const usernameInput = document.getElementById("login-email");
+      const passwordInput = document.getElementById("login-password");
+      
+      const username = usernameInput ? usernameInput.value.trim() : "";
+      const password = passwordInput ? passwordInput.value : "";
+      
+      if (!username || !password) {
+        showError(loginErrorContainer, "Please fill in all fields.");
+        return;
+      }
+      
+      try {
+        const res = await fetch("/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.reload();
+        } else {
+          showError(loginErrorContainer, data.message || "Failed to login.");
+        }
+      } catch (err) {
+        showError(loginErrorContainer, "Network error occurred.");
+      }
+    });
+  }
+
+  // Handle Register Form Submission
+  const registerForm = document.getElementById("register-form");
+  const registerErrorContainer = document.getElementById("register-error-container");
+  if (registerForm) {
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const usernameInput = document.getElementById("register-username");
+      const emailInput = document.getElementById("register-email");
+      const passwordInput = document.getElementById("register-password");
+      const confirmPasswordInput = document.getElementById("register-confirm-password");
+      
+      const username = usernameInput ? usernameInput.value.trim() : "";
+      const email = emailInput ? emailInput.value.trim() : "";
+      const password = passwordInput ? passwordInput.value : "";
+      const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : "";
+      
+      if (!username || !email || !password || !confirmPassword) {
+        showError(registerErrorContainer, "Please fill in all fields.");
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        showError(registerErrorContainer, "Passwords do not match.");
+        return;
+      }
+      
+      try {
+        const res = await fetch("/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ username, email, password })
+        });
+        
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.reload();
+        } else {
+          showError(registerErrorContainer, data.message || "Failed to register.");
+        }
+      } catch (err) {
+        showError(registerErrorContainer, "Network error occurred.");
+      }
+    });
+  }
+
+  function showError(container, msg) {
+    if (!container) return;
+    container.textContent = msg;
+    container.classList.remove("hidden");
+  }
 });

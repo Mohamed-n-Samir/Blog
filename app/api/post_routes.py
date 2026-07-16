@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload 
@@ -15,6 +15,7 @@ from app.services.tag_service import TagService
 from app.models.models import Tag
 
 from app.utils.exceptions import NotFoundException
+from app.utils.auth import get_current_user
 
 from app.config.database import async_get_db
 
@@ -42,7 +43,13 @@ async def get_user_posts(user_id: int, db: DBSession):
     status_code=status.HTTP_201_CREATED,
     response_model=PostResponse,
 )
-async def create_post(post: PostCreate, db: DBSession):
+async def create_post(
+    post: PostCreate,
+    db: DBSession,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if post.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only create posts for yourself.")
 
     user_service = UserService(db)
 
@@ -84,12 +91,20 @@ async def create_post(post: PostCreate, db: DBSession):
     "/api/posts/{post_id}",
     response_model=PostResponse,
 )
-async def update_post(post_id: int, post: PostCreate, db: DBSession):
+async def update_post(
+    post_id: int,
+    post: PostCreate,
+    db: DBSession,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
     post_service = PostService(db)
     existing_post = await post_service.get(post_id, options=[selectinload(Post.author), selectinload(Post.tags)])
     
     if not existing_post:
         raise NotFoundException(f"Post with id: {post_id} does not exist")
+
+    if existing_post.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You are not authorized to update this post.")
 
     post_data = post.model_dump()
     tag_names = post_data.pop("tags", [])
@@ -128,12 +143,19 @@ async def update_post(post_id: int, post: PostCreate, db: DBSession):
     "/api/posts/{post_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-async def delete_post(post_id: int, db: DBSession):
+async def delete_post(
+    post_id: int,
+    db: DBSession,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
     post_service = PostService(db)
     existing_post = await post_service.get(post_id)
     if not existing_post:
         raise NotFoundException(f"Post with id: {post_id} does not exist")
     
+    if existing_post.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You are not authorized to delete this post.")
+
     await post_service.delete(post_id)
     return None
 

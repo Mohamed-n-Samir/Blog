@@ -24,7 +24,7 @@
     <!-- Left Panel: Sidebar (Saved posts by user) -->
     <section class="w-full lg:w-80 flex flex-col gap-4 flex-shrink-0">
       
-      <a href="{{ url_for('new_post', user_id=user.id) }}" class="w-full py-3 px-4 rounded-xl border border-dashed border-accent/40 text-accent hover:border-accent hover:bg-accent/5 font-display font-medium flex items-center justify-center gap-2 transition duration-300 shadow-sm hover:shadow-accent/20">
+      <a href="{{ url_for('new_post') }}" class="w-full py-3 px-4 rounded-xl border border-dashed border-accent/40 text-accent hover:border-accent hover:bg-accent/5 font-display font-medium flex items-center justify-center gap-2 transition duration-300 shadow-sm hover:shadow-accent/20">
         <i data-lucide="plus-circle" class="w-5 h-5"></i>
         Create New Post
       </a>

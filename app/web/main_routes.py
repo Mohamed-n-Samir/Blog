@@ -1,15 +1,14 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Request, Depends
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config.database import async_get_db
 from app.constants.constant import ROOT_DIR
 from app.models.models import Post
 from app.services.post_service import PostService
+from app.config.templates import templates
 
-templates = Jinja2Templates(directory=ROOT_DIR / "templates")
 DBSession = Annotated[AsyncSession, Depends(async_get_db)]
 main_router = APIRouter()
 

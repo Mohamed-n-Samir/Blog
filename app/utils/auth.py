@@ -72,3 +72,41 @@ def generate_user_token(user_data: dict[str, Any]) -> str:
             "role": user_data.get("role", "USER"),
         }
     )
+
+
+from fastapi import Request, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.config.database import async_get_db
+
+async def get_current_user(
+    request: Request,
+    db: AsyncSession = Depends(async_get_db)
+):
+    from app.services.user_service import UserService
+    from app.utils.exceptions import AuthenticationException
+    
+    # 1. Try to get token from Authorization header
+    token = None
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+    
+    # 2. Try to get token from cookies
+    if not token:
+        token = request.cookies.get("access_token")
+        
+    if not token:
+        raise AuthenticationException(message="Not authenticated")
+        
+    try:
+        payload = verify_user_token(token)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise AuthenticationException(message="Invalid token")
+        user_service = UserService(db)
+        user = await user_service.get(int(user_id))
+        if not user:
+            raise AuthenticationException(message="User not found")
+        return user
+    except Exception:
+        raise AuthenticationException(message="Authentication failed")

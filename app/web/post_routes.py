@@ -1,7 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Request, Depends
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -11,8 +10,8 @@ from app.models.models import Post
 from app.services.post_service import PostService
 from app.services.user_service import UserService
 from app.utils.exceptions import NotFoundException
+from app.config.templates import templates
 
-templates = Jinja2Templates(directory=ROOT_DIR / "templates")
 DBSession = Annotated[AsyncSession, Depends(async_get_db)]
 post_router = APIRouter()
 
@@ -34,6 +33,10 @@ async def edit_post_page(post_id: int, request: Request, db: DBSession):
     if not post:
         raise NotFoundException(message="Post Not found")
     
+    current_user = request.state.user
+    if not current_user or current_user.id != post.user_id:
+        raise HTTPException(status_code=403, detail="You are not authorized to edit this post.")
+        
     posts = await post_service.get_all_by_user_id(post.user_id, options=[selectinload(Post.tags)])
     
     from app.services.category_service import CategoryService
@@ -52,15 +55,14 @@ async def edit_post_page(post_id: int, request: Request, db: DBSession):
     )
 
 
-@post_router.get("/users/{user_id}/posts/new", include_in_schema=False, name="new_post")
-async def new_post_page(user_id: int, request: Request, db: DBSession):
-    user_service = UserService(db)
-    user = await user_service.get(user_id)
-    if not user:
-        raise NotFoundException(message=f"User with the id: {user_id} doesn't exist!")
-    
+@post_router.get("/posts/new", include_in_schema=False, name="new_post")
+async def new_post_page(request: Request, db: DBSession):
+    current_user = request.state.user
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+        
     post_service = PostService(db)
-    posts = await post_service.get_all_by_user_id(user_id, options=[selectinload(Post.tags)])
+    posts = await post_service.get_all_by_user_id(current_user.id, options=[selectinload(Post.tags)])
     
     from app.services.category_service import CategoryService
     category_service = CategoryService(db)
@@ -72,7 +74,7 @@ async def new_post_page(user_id: int, request: Request, db: DBSession):
         {
             "post": None,
             "posts": posts,
-            "user": user,
+            "user": current_user,
             "categories": categories,
         }
     )

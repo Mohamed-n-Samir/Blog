@@ -355,7 +355,7 @@ async function deletePost() {
 
     showToast("Post deleted successfully!");
     setTimeout(() => {
-      window.location.href = `/users/${userId}/posts/new`;
+      window.location.href = "/posts/new";
     }, 1000);
   } catch (err) {
     showToast(err.message, "warning");

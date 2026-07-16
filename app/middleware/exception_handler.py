@@ -5,7 +5,6 @@ from typing import Any
 from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from fastapi.templating import Jinja2Templates
 
 from starlette.exceptions import HTTPException
 
@@ -13,16 +12,11 @@ from app.utils.exceptions import APPException
 from app.utils.helpers import is_api_request
 
 from app.constants.constant import ROOT_DIR
-
+from app.config.templates import templates
 
 logger = logging.getLogger(__name__)
 
-
 template_dir = ROOT_DIR / "templates"
-
-templates = Jinja2Templates(
-    directory=template_dir
-)
 
 
 def get_error_template(status_code: int) -> str:

@@ -1,3 +1,4 @@
+from typing import Any
 from sqlalchemy import func, or_, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -76,8 +77,17 @@ class UserService:
         raise ConflictException("Email already exists")
 
         
-    async def authenticate_user(self, user_data: UserLogin) -> User:
-        user = await self.repo.get_by(email=user_data.username)
+    async def authenticate_user(self, user_data: Any) -> User:
+        username_or_email = getattr(user_data, "username", None) or getattr(user_data, "email", None)
+        if not username_or_email:
+            raise AuthenticationException(message="Invalid email or password", headers={"WWW-Authenticate": "Bearer"})
+            
+        user = await self.repo.find(
+            or_(
+                func.lower(User.email) == username_or_email.lower(),
+                func.lower(User.username) == username_or_email.lower()
+            )
+        )
         
         if not user:
             raise AuthenticationException(message="Invalid email or password", headers={"WWW-Authenticate": "Bearer"})

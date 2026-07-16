@@ -28,6 +28,7 @@ from app.config.settings import settings
 from app.utils.exceptions import APPException
 from app.web import web_router
 from app.api import api_router
+from app.middleware.auth_middleware import AuthMiddleware
 
 from typing import Annotated
 
@@ -77,6 +78,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(AuthMiddleware)
 
 if settings.app_mode in ["full", "web"]:
     app.mount("/static", StaticFiles(directory=ROOT_DIR / "static"), name="static")
