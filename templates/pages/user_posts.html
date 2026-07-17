@@ -17,17 +17,47 @@
             height="250"
             class="w-25 h-25 md:w-30 md:h-30 rounded-full object-cover border-2 border-border shadow-lg mb-4"
         />
-        <div class="flex items-center justify-center gap-3 mb-4">
+        <div class="flex items-center justify-center gap-3 mb-2">
             <i data-lucide="book-open" class="h-6 w-6 text-accent"></i>
 
-
             <h1 class="font-display leading-tight text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-                Posts By { {{user.username}} }
+                Posts By { {% if user.first_name or user.last_name %}{{ user.first_name | default('') }} {{ user.last_name | default('') }}{% else %}{{ user.username }}{% endif %} }
             </h1>
 
             <span class="rounded bg-panel-2 border border-border px-2 py-0.5 text-xs text-muted-foreground font-mono">
                 {{ total }} posts
             </span>
+        </div>
+
+        <!-- Followers display and follow button -->
+        <div class="flex items-center justify-center gap-4 mb-4 font-mono text-xs">
+            <div class="flex items-center gap-1.5 text-accent">
+                <i data-lucide="users" class="w-4 h-4"></i>
+                <span id="followers-count-{{ user.id }}">{{ user.followers | length }}</span> followers
+            </div>
+            
+            {% if current_user and current_user.id != user.id %}
+              {% set is_following = current_user.id in user.followers | map(attribute='id') %}
+              <button 
+                data-user-id="{{ user.id }}"
+                class="follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 font-mono 
+                {% if is_following %}
+                  border-accent/30 bg-accent/5 text-accent/60 cursor-not-allowed
+                {% else %}
+                  bg-accent text-background border border-accent/20 hover:brightness-110 active:scale-95 shadow-md shadow-accent/10 cursor-pointer
+                {% endif %}"
+                {% if is_following %}disabled{% endif %}
+              >
+                {% if is_following %}followed{% else %}follow(){% endif %}
+              </button>
+            {% elif not current_user %}
+              <button 
+                class="px-4 py-1.5 rounded-lg bg-accent text-background border border-accent/20 hover:brightness-110 active:scale-95 shadow-md shadow-accent/10 text-xs font-bold cursor-pointer font-mono"
+                onclick="document.getElementById('nav-login-btn').click();"
+              >
+                follow()
+              </button>
+            {% endif %}
         </div>
 
         <p class="text-sm text-muted-foreground max-w-2xl leading-relaxed">
@@ -57,4 +87,59 @@
         {% include 'partials/empty_state.html' %}
     {% endif %}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const followBtn = document.querySelector(".follow-btn");
+  if (followBtn) {
+    followBtn.addEventListener("click", async () => {
+      const targetUserId = followBtn.dataset.userId;
+      if (!targetUserId) return;
+      
+      try {
+        followBtn.disabled = true;
+        const res = await fetch(`/users/${targetUserId}/follow`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (res.status === 401) {
+          const loginBtn = document.getElementById("nav-login-btn");
+          if (loginBtn) loginBtn.click();
+          return;
+        }
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.detail || err.message || "Failed to toggle follow status");
+          return;
+        }
+        
+        const data = await res.json();
+        if (data.success) {
+          if (data.following) {
+            followBtn.textContent = "followed";
+            followBtn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 font-mono border-accent/30 bg-accent/5 text-accent/60 cursor-not-allowed";
+            followBtn.disabled = true;
+            const countEl = document.getElementById(`followers-count-${targetUserId}`);
+            if (countEl) {
+              countEl.textContent = data.followers_count;
+            }
+            return;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert("An error occurred. Please try again.");
+      } finally {
+        if (!followBtn.disabled) {
+          followBtn.disabled = false;
+        }
+      }
+    });
+  }
+});
+</script>
 {% endblock content %}

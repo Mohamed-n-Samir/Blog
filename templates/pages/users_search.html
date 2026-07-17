@@ -73,22 +73,18 @@
           <!-- Actions Section -->
           <div class="flex items-center justify-end flex-shrink-0">
             {% if current_user %}
-              {% set is_following = false %}
-              {% for f in u.followers %}
-                {% if f.id == current_user.id %}
-                  {% set is_following = true %}
-                {% endif %}
-              {% endfor %}
+              {% set is_following = current_user.id in u.followers | map(attribute='id') %}
               <button 
                 data-user-id="{{ u.id }}"
-                class="follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono 
+                class="follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 font-mono 
                 {% if is_following %}
-                  border-accent/40 bg-accent/10 text-accent hover:bg-accent/20
+                  border-accent/30 bg-accent/5 text-accent/60 cursor-not-allowed
                 {% else %}
-                  bg-accent text-background border border-accent/20 hover:brightness-110 active:scale-95 shadow-md shadow-accent/10
+                  bg-accent text-background border border-accent/20 hover:brightness-110 active:scale-95 shadow-md shadow-accent/10 cursor-pointer
                 {% endif %}"
+                {% if is_following %}disabled{% endif %}
               >
-                {% if is_following %}unfollow(){% else %}follow(){% endif %}
+                {% if is_following %}followed{% else %}follow(){% endif %}
               </button>
             {% else %}
               <button 
@@ -150,8 +146,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.success) {
           // Update button appearance
           if (data.following) {
-            btn.textContent = "unfollow()";
-            btn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono border-accent/40 bg-accent/10 text-accent hover:bg-accent/20";
+            btn.textContent = "followed";
+            btn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 font-mono border-accent/30 bg-accent/5 text-accent/60 cursor-not-allowed";
+            btn.disabled = true;
+            // Early update for followers count since we don't proceed to finally
+            const countEl = document.getElementById(`followers-count-${targetUserId}`);
+            if (countEl) {
+              countEl.textContent = data.followers_count;
+            }
+            return;
           } else {
             btn.textContent = "follow()";
             btn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono bg-accent text-background border border-accent/20 hover:brightness-110 active:scale-95 shadow-md shadow-accent/10";

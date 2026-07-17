@@ -21,8 +21,17 @@ user_router = APIRouter()
     "/users/{user_id}/posts", include_in_schema=False, response_model=list[PostResponse]
 )
 async def get_user_posts(user_id: int, request: Request, db: DBSession, page: int = 1, page_size: int = 6):
-    user_service = UserService(db)
-    user = await user_service.get(user_id)
+    current_user = request.state.user
+    print(f"[DEBUG] get_user_posts: current_user={current_user}")
+    if current_user:
+        print(f"[DEBUG] get_user_posts: current_user.id={current_user.id} type={type(current_user.id)}")
+        
+    res = await db.scalars(
+        select(User)
+        .where(User.id == user_id)
+        .options(selectinload(User.followers))
+    )
+    user = res.unique().one_or_none()
     if not user:
         raise NotFoundException(
             message=f"User with the id: {user_id} doesn't exist!",
@@ -144,6 +153,11 @@ async def search_users(
         .subquery()
     )
     
+    current_user = request.state.user
+    print(f"[DEBUG] search_users: current_user={current_user}")
+    if current_user:
+        print(f"[DEBUG] search_users: current_user.id={current_user.id} type={type(current_user.id)}")
+        
     conditions = []
     if q:
         q = q.strip()
@@ -155,7 +169,6 @@ async def search_users(
             )
         )
         
-    current_user = request.state.user
     if current_user:
         conditions.append(User.id != current_user.id)
         
