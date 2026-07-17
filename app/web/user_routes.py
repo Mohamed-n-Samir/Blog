@@ -123,3 +123,119 @@ async def update_profile(
             "success": success_msg,
         }
     )
+
+
+from sqlalchemy import func, select, or_
+from sqlalchemy.orm import selectinload
+from app.models.models import User, followers
+
+@user_router.get("/users/search", include_in_schema=False, name="search_users")
+async def search_users(
+    request: Request,
+    db: DBSession,
+    q: str | None = None,
+    page: int = 1,
+    page_size: int = 6
+):
+    # Subquery to aggregate follower counts
+    follower_count_sub = (
+        select(followers.c.followed_id, func.count(followers.c.follower_id).label("follower_count"))
+        .group_by(followers.c.followed_id)
+        .subquery()
+    )
+    
+    conditions = []
+    if q:
+        q = q.strip()
+        conditions.append(
+            or_(
+                User.username.ilike(f"%{q}%"),
+                User.first_name.ilike(f"%{q}%"),
+                User.last_name.ilike(f"%{q}%")
+            )
+        )
+        
+    # Count total matching users
+    count_stmt = select(func.count(User.id))
+    if conditions:
+        count_stmt = count_stmt.where(*conditions)
+    total = await db.scalar(count_stmt) or 0
+    
+    # Query matching users sorted by follower count descending
+    stmt = (
+        select(User)
+        .outerjoin(follower_count_sub, User.id == follower_count_sub.c.followed_id)
+        .options(selectinload(User.followers))
+        .order_by(follower_count_sub.c.follower_count.desc().nullslast(), User.username.asc())
+        .limit(page_size)
+        .offset((page - 1) * page_size)
+    )
+    if conditions:
+        stmt = stmt.where(*conditions)
+        
+    result = await db.scalars(stmt)
+    users_list = result.unique().all()
+    
+    total_pages = (total + page_size - 1) // page_size
+    
+    return templates.TemplateResponse(
+        request,
+        "pages/users_search.html",
+        {
+            "users": users_list,
+            "query": q,
+            "page": page,
+            "total_pages": total_pages,
+            "total": total,
+        }
+    )
+
+
+@user_router.post("/users/{user_id}/follow", include_in_schema=False)
+async def toggle_follow(
+    user_id: int,
+    request: Request,
+    db: DBSession
+):
+    current_user = request.state.user
+    if not current_user:
+        raise AuthenticationException("Not authenticated")
+        
+    if current_user.id == user_id:
+        raise APPException(status_code=400, message="You cannot follow yourself.")
+        
+    user_service = UserService(db)
+    target_user = await user_service.get(user_id)
+    if not target_user:
+        raise NotFoundException(message=f"User with the id: {user_id} doesn't exist!")
+        
+    # Re-fetch current_user with following loaded to avoid lazy load issues
+    res = await db.scalars(
+        select(User)
+        .where(User.id == current_user.id)
+        .options(selectinload(User.following))
+    )
+    current_user_loaded = res.unique().one()
+    
+    # Re-fetch target_user with followers loaded
+    res_target = await db.scalars(
+        select(User)
+        .where(User.id == target_user.id)
+        .options(selectinload(User.followers))
+    )
+    target_user_loaded = res_target.unique().one()
+
+    is_following = False
+    if target_user_loaded in current_user_loaded.following:
+        current_user_loaded.following.remove(target_user_loaded)
+    else:
+        current_user_loaded.following.append(target_user_loaded)
+        is_following = True
+        
+    await db.commit()
+    
+    return {
+        "success": True,
+        "following": is_following,
+        "followers_count": len(target_user_loaded.followers)
+    }

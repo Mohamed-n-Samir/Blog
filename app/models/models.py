@@ -49,11 +49,39 @@ class User(Base):
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
+    # Self-referential relationship for following/followers
+    following: Mapped[list[User]] = relationship(
+        "User",
+        secondary="followers",
+        primaryjoin="User.id == followers.c.follower_id",
+        secondaryjoin="User.id == followers.c.followed_id",
+        back_populates="followers",
+    )
+    followers: Mapped[list[User]] = relationship(
+        "User",
+        secondary="followers",
+        primaryjoin="User.id == followers.c.followed_id",
+        secondaryjoin="User.id == followers.c.follower_id",
+        back_populates="following",
+    )
+
     @property
     def image_path(self) -> str:
         if self.image_file:
             return f"/media/profile_pics/{self.image_file}"
         return "/static/imgs/profile_pics/default.png"
+
+
+followers = Table(
+    "followers",
+    Base.metadata,
+    Column(
+        "follower_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column(
+        "followed_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    ),
+)
 
 
 post_tags = Table(

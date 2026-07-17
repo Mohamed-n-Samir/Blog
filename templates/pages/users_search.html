@@ -1,0 +1,173 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Developers Search{% endblock %}
+
+{% block content %}
+<!-- Grid Overlay -->
+<div class="fixed inset-0 grid-bg pointer-events-none z-0"></div>
+
+<main class="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+  
+  <!-- Header -->
+  <div class="flex flex-col gap-2 text-center md:text-left">
+    <h1 class="font-display text-2xl md:text-3xl font-extrabold text-foreground tracking-tight">find_developers()</h1>
+    <p class="text-xs md:text-sm text-muted-foreground">Search other developers in the community and follow their tech updates.</p>
+  </div>
+
+  <!-- Search Input Area -->
+  <div class="panel p-6 bg-panel shadow-xl flex flex-col md:flex-row gap-4 items-center justify-between">
+    <form method="GET" action="{{ url_for('search_users') }}" class="w-full max-w-2xl">
+      <div class="relative">
+        <i data-lucide="search" class="absolute left-4 top-3.5 w-4 h-4 text-muted-foreground"></i>
+        <input type="text" name="q" value="{{ query or '' }}" placeholder="Search by username, first name or last name..." class="w-full pl-11 pr-24 py-3 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm font-mono transition-colors">
+        <button type="submit" class="absolute right-2 top-2 px-4 py-1.5 bg-accent text-background text-xs font-bold rounded-lg hover:brightness-110 active:scale-95 transition cursor-pointer font-mono">
+          query()
+        </button>
+      </div>
+    </form>
+    <div class="text-xs font-mono text-muted-foreground whitespace-nowrap">
+      total_found: <span class="text-accent font-semibold">{{ total }}</span>
+    </div>
+  </div>
+
+  <!-- Developers Grid -->
+  {% if users %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for u in users %}
+        <div class="panel p-6 flex flex-col justify-between gap-6 hover:border-accent/40 transition-all duration-300 lift lift-hover">
+          
+          <div class="flex items-start gap-4">
+            <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="flex-shrink-0">
+              <img src="{{ u.image_path }}" alt="{{ u.username }}" class="w-16 h-16 rounded-full object-cover border border-border">
+            </a>
+            
+            <div class="flex-1 min-w-0">
+              <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="hover:text-accent transition">
+                <h3 class="text-sm font-bold text-foreground truncate font-display">
+                  {% if u.first_name or u.last_name %}
+                    {{ u.first_name | default('') }} {{ u.last_name | default('') }}
+                  {% else %}
+                    @{{ u.username }}
+                  {% endif %}
+                </h3>
+              </a>
+              <p class="text-[10px] text-muted-foreground font-mono truncate">@{{ u.username }}</p>
+              <div class="flex items-center gap-1.5 mt-2 text-[10px] text-accent font-mono">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span id="followers-count-{{ u.id }}">{{ u.followers | length }}</span> followers
+              </div>
+            </div>
+          </div>
+
+          <!-- Bio -->
+          <p class="text-xs text-muted-foreground line-clamp-3 leading-relaxed font-mono">
+            {{ u.bio or "This developer hasn't written a biography yet." }}
+          </p>
+
+          <div class="flex items-center justify-between border-t border-border/40 pt-4 mt-2">
+            <span class="text-[9px] font-mono text-muted-foreground">Joined: {{ u.created_at.strftime('%b %d, %Y') if u.created_at else 'Unknown' }}</span>
+            
+            {% if current_user and current_user.id != u.id %}
+              {% set is_following = false %}
+              {% for f in u.followers %}
+                {% if f.id == current_user.id %}
+                  {% set is_following = true %}
+                {% endif %}
+              {% endfor %}
+              <button 
+                data-user-id="{{ u.id }}"
+                class="follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono 
+                {% if is_following %}
+                  border-accent/40 bg-accent/10 text-accent hover:bg-accent/20
+                {% else %}
+                  border-border hover:border-accent/50 hover:bg-panel-2 text-foreground
+                {% endif %}"
+              >
+                {% if is_following %}unfollow(){% else %}follow(){% endif %}
+              </button>
+            {% elif not current_user %}
+              <button 
+                class="px-4 py-1.5 rounded-lg border border-border hover:border-accent/50 hover:bg-panel-2 text-foreground text-xs font-bold cursor-pointer font-mono"
+                onclick="document.getElementById('nav-login-btn').click();"
+              >
+                follow()
+              </button>
+            {% else %}
+              <span class="text-[9px] font-mono text-muted-foreground italic">(you)</span>
+            {% endif %}
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% include 'partials/pagination.html' %}
+
+  {% else %}
+    {% set icon = 'users' %}
+    {% set title = 'No Developers Found' %}
+    {% set message = 'No developers matched your query or exist in the community yet.' %}
+    {% include 'partials/empty_state.html' %}
+  {% endif %}
+
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const followButtons = document.querySelectorAll(".follow-btn");
+  followButtons.forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const targetUserId = btn.dataset.userId;
+      if (!targetUserId) return;
+      
+      try {
+        btn.disabled = true;
+        const res = await fetch(`/users/${targetUserId}/follow`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (res.status === 401) {
+          // Trigger login modal
+          const loginBtn = document.getElementById("nav-login-btn");
+          if (loginBtn) loginBtn.click();
+          return;
+        }
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.detail || err.message || "Failed to toggle follow status");
+          return;
+        }
+        
+        const data = await res.json();
+        if (data.success) {
+          // Update button appearance
+          if (data.following) {
+            btn.textContent = "unfollow()";
+            btn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono border-accent/40 bg-accent/10 text-accent hover:bg-accent/20";
+          } else {
+            btn.textContent = "follow()";
+            btn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono border-border hover:border-accent/50 hover:bg-panel-2 text-foreground";
+          }
+          
+          // Update followers count
+          const countEl = document.getElementById(`followers-count-${targetUserId}`);
+          if (countEl) {
+            countEl.textContent = data.followers_count;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert("An error occurred. Please try again.");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+});
+</script>
+{% endblock content %}
