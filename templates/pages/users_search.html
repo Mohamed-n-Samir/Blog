@@ -30,44 +30,49 @@
     </div>
   </div>
 
-  <!-- Developers Grid -->
+  <!-- Developers List (Compact list view) -->
   {% if users %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="flex flex-col gap-4 max-w-4xl w-full mx-auto">
       {% for u in users %}
-        <div class="panel p-6 flex flex-col justify-between gap-6 hover:border-accent/40 transition-all duration-300 lift lift-hover">
+        <div class="panel p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-accent/40 transition-all duration-300 lift">
           
-          <div class="flex items-start gap-4">
+          <!-- Info Section -->
+          <div class="flex items-center gap-4 min-w-0">
             <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="flex-shrink-0">
-              <img src="{{ u.image_path }}" alt="{{ u.username }}" class="w-16 h-16 rounded-full object-cover border border-border">
+              <img src="{{ u.image_path }}" alt="{{ u.username }}" class="w-12 h-12 rounded-full object-cover border border-border">
             </a>
             
-            <div class="flex-1 min-w-0">
-              <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="hover:text-accent transition">
-                <h3 class="text-sm font-bold text-foreground truncate font-display">
-                  {% if u.first_name or u.last_name %}
-                    {{ u.first_name | default('') }} {{ u.last_name | default('') }}
-                  {% else %}
-                    @{{ u.username }}
-                  {% endif %}
-                </h3>
-              </a>
-              <p class="text-[10px] text-muted-foreground font-mono truncate">@{{ u.username }}</p>
-              <div class="flex items-center gap-1.5 mt-2 text-[10px] text-accent font-mono">
+            <div class="min-w-0 flex flex-col gap-0.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="hover:text-accent transition">
+                  <h3 class="text-sm font-bold text-foreground font-display">
+                    {% if u.first_name or u.last_name %}
+                      {{ u.first_name | default('') }} {{ u.last_name | default('') }}
+                    {% else %}
+                      @{{ u.username }}
+                    {% endif %}
+                  </h3>
+                </a>
+                <span class="text-[10px] text-muted-foreground font-mono">@{{ u.username }}</span>
+              </div>
+              
+              <!-- Bio (Compact) -->
+              {% if u.bio %}
+                <p class="text-xs text-muted-foreground line-clamp-1 leading-relaxed font-mono">
+                  {{ u.bio }}
+                </p>
+              {% endif %}
+
+              <div class="flex items-center gap-1.5 mt-1 text-[10px] text-accent font-mono">
                 <i data-lucide="users" class="w-3.5 h-3.5"></i>
                 <span id="followers-count-{{ u.id }}">{{ u.followers | length }}</span> followers
               </div>
             </div>
           </div>
 
-          <!-- Bio -->
-          <p class="text-xs text-muted-foreground line-clamp-3 leading-relaxed font-mono">
-            {{ u.bio or "This developer hasn't written a biography yet." }}
-          </p>
-
-          <div class="flex items-center justify-between border-t border-border/40 pt-4 mt-2">
-            <span class="text-[9px] font-mono text-muted-foreground">Joined: {{ u.created_at.strftime('%b %d, %Y') if u.created_at else 'Unknown' }}</span>
-            
-            {% if current_user and current_user.id != u.id %}
+          <!-- Actions Section -->
+          <div class="flex items-center justify-end flex-shrink-0">
+            {% if current_user %}
               {% set is_following = false %}
               {% for f in u.followers %}
                 {% if f.id == current_user.id %}
@@ -80,20 +85,18 @@
                 {% if is_following %}
                   border-accent/40 bg-accent/10 text-accent hover:bg-accent/20
                 {% else %}
-                  border-border hover:border-accent/50 hover:bg-panel-2 text-foreground
+                  bg-accent text-background border border-accent/20 hover:brightness-110 active:scale-95 shadow-md shadow-accent/10
                 {% endif %}"
               >
                 {% if is_following %}unfollow(){% else %}follow(){% endif %}
               </button>
-            {% elif not current_user %}
+            {% else %}
               <button 
-                class="px-4 py-1.5 rounded-lg border border-border hover:border-accent/50 hover:bg-panel-2 text-foreground text-xs font-bold cursor-pointer font-mono"
+                class="px-4 py-1.5 rounded-lg bg-accent text-background border border-accent/20 hover:brightness-110 active:scale-95 shadow-md shadow-accent/10 text-xs font-bold cursor-pointer font-mono"
                 onclick="document.getElementById('nav-login-btn').click();"
               >
                 follow()
               </button>
-            {% else %}
-              <span class="text-[9px] font-mono text-muted-foreground italic">(you)</span>
             {% endif %}
           </div>
 
@@ -151,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono border-accent/40 bg-accent/10 text-accent hover:bg-accent/20";
           } else {
             btn.textContent = "follow()";
-            btn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono border-border hover:border-accent/50 hover:bg-panel-2 text-foreground";
+            btn.className = "follow-btn px-4 py-1.5 rounded-lg border text-xs font-bold transition duration-300 cursor-pointer font-mono bg-accent text-background border border-accent/20 hover:brightness-110 active:scale-95 shadow-md shadow-accent/10";
           }
           
           // Update followers count

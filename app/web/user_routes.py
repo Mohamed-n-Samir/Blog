@@ -155,6 +155,10 @@ async def search_users(
             )
         )
         
+    current_user = request.state.user
+    if current_user:
+        conditions.append(User.id != current_user.id)
+        
     # Count total matching users
     count_stmt = select(func.count(User.id))
     if conditions:
