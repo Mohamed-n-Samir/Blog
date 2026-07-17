@@ -156,11 +156,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (registerForm) {
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const firstNameInput = document.getElementById("register-first-name");
+      const lastNameInput = document.getElementById("register-last-name");
       const usernameInput = document.getElementById("register-username");
       const emailInput = document.getElementById("register-email");
       const passwordInput = document.getElementById("register-password");
       const confirmPasswordInput = document.getElementById("register-confirm-password");
       
+      const first_name = firstNameInput ? firstNameInput.value.trim() : "";
+      const last_name = lastNameInput ? lastNameInput.value.trim() : "";
       const username = usernameInput ? usernameInput.value.trim() : "";
       const email = emailInput ? emailInput.value.trim() : "";
       const password = passwordInput ? passwordInput.value : "";
@@ -182,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ username, email, password })
+          body: JSON.stringify({ username, email, password, first_name, last_name })
         });
         
         const data = await res.json();

@@ -57,6 +57,16 @@
 
         <!-- Form -->
         <form id="register-form" class="flex flex-col gap-4" onsubmit="event.preventDefault();">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label for="register-first-name" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">First Name</label>
+                    <input type="text" id="register-first-name" placeholder="John" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label for="register-last-name" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Last Name</label>
+                    <input type="text" id="register-last-name" placeholder="Doe" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">
+                </div>
+            </div>
             <div class="flex flex-col gap-1.5">
                 <label for="register-username" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground font-mono">Username</label>
                 <input type="text" id="register-username" placeholder="developer" class="w-full p-2.5 bg-panel-2 border border-border rounded-xl focus:outline-none focus:border-accent text-foreground text-sm transition-colors">

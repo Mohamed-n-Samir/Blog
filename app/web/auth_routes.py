@@ -21,6 +21,8 @@ class WebRegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: EmailStr
     password: str = Field(min_length=8)
+    first_name: str | None = None
+    last_name: str | None = None
 
 @auth_router.post("/login")
 async def web_login(
@@ -72,7 +74,9 @@ async def web_register(
         new_user = User(
             username=register_data.username,
             email=register_data.email.lower(),
-            password_hash=hash_password(register_data.password)
+            password_hash=hash_password(register_data.password),
+            first_name=register_data.first_name,
+            last_name=register_data.last_name,
         )
         
         user = await user_service.add(new_user)
