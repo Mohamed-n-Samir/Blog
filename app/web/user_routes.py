@@ -208,6 +208,37 @@ async def search_users(
     )
 
 
+@user_router.get("/connections", include_in_schema=False, name="user_connections")
+async def user_connections_page(request: Request, db: DBSession):
+    current_user = request.state.user
+    if not current_user:
+        raise AuthenticationException("Not authenticated")
+    
+    # Re-fetch current_user with both following and followers loaded
+    res = await db.scalars(
+        select(User)
+        .where(User.id == current_user.id)
+        .options(
+            selectinload(User.following).selectinload(User.followers),
+            selectinload(User.followers).selectinload(User.followers)
+        )
+    )
+    user = res.unique().one()
+    
+    following_ids = {u.id for u in user.following}
+    
+    return templates.TemplateResponse(
+        request,
+        "pages/connections.html",
+        {
+            "user": user,
+            "following": user.following,
+            "followers": user.followers,
+            "following_ids": following_ids,
+        }
+    )
+
+
 @user_router.post("/users/{user_id}/follow", include_in_schema=False)
 async def toggle_follow(
     user_id: int,

@@ -1,0 +1,370 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}My Network | {{ user.username }}{% endblock %}
+
+{% block content %}
+<!-- Grid Overlay -->
+<div class="fixed inset-0 grid-bg pointer-events-none z-0"></div>
+
+<main class="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+  
+  <!-- Header -->
+  <div class="flex flex-col gap-2 text-center md:text-left">
+    <h1 class="font-display text-2xl md:text-3xl font-extrabold text-foreground tracking-tight">my_network()</h1>
+    <p class="text-xs md:text-sm text-muted-foreground">Manage your developer connections, see who follows you, and explore mutual relationships.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
+    
+    <!-- Left column: Profile overview card -->
+    <aside class="panel p-6 flex flex-col items-center text-center gap-4 bg-panel shadow-xl">
+      <div class="relative">
+        <img src="{{ user.image_path }}" alt="{{ user.username }}" class="w-24 h-24 rounded-full object-cover border-2 border-border/80 shadow-md">
+      </div>
+      <div>
+        <h2 class="text-sm font-bold text-foreground font-mono">@{{ user.username }}</h2>
+        <p class="text-[10px] text-muted-foreground mt-0.5">
+          {% if user.first_name or user.last_name %}
+            {{ user.first_name | default('') }} {{ user.last_name | default('') }}
+          {% else %}
+            Developer
+          {% endif %}
+        </p>
+      </div>
+      
+      {% if user.bio %}
+        <p class="text-xs text-muted-foreground font-mono leading-relaxed line-clamp-3">
+          {{ user.bio }}
+        </p>
+      {% endif %}
+      
+      <div class="w-full border-t border-border/60 pt-4 flex flex-col gap-2 font-mono text-[10px] text-left text-muted-foreground">
+        <div class="flex justify-between">
+          <span>Following:</span>
+          <span class="text-foreground font-semibold" id="sidebar-following-count">{{ following | length }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Followers:</span>
+          <span class="text-foreground font-semibold" id="sidebar-followers-count">{{ followers | length }}</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right column: Tabs & Lists -->
+    <section class="flex flex-col gap-6 w-full">
+      
+      <!-- Tab Controls & Search -->
+      <div class="panel p-4 bg-panel shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <!-- Tabs -->
+        <div class="flex border-b border-border/40 font-mono text-xs w-full sm:w-auto">
+          <button 
+            id="tab-following-btn" 
+            class="px-4 py-2.5 font-bold border-b-2 border-accent text-accent cursor-pointer transition-all duration-200"
+            onclick="switchTab('following')"
+          >
+            following(<span id="tab-following-count">{{ following | length }}</span>)
+          </button>
+          <button 
+            id="tab-followers-btn" 
+            class="px-4 py-2.5 font-bold border-b-2 border-transparent text-muted-foreground hover:text-foreground cursor-pointer transition-all duration-200"
+            onclick="switchTab('followers')"
+          >
+            followers(<span id="tab-followers-count">{{ followers | length }}</span>)
+          </button>
+        </div>
+        
+        <!-- Local Filter Input -->
+        <div class="relative w-full sm:max-w-xs">
+          <i data-lucide="search" class="absolute left-3 top-2.5 w-3.5 h-3.5 text-muted-foreground"></i>
+          <input 
+            type="text" 
+            id="connection-search" 
+            placeholder="filter_connections()..." 
+            class="w-full pl-9 pr-4 py-1.5 bg-panel-2 border border-border rounded-lg focus:outline-none focus:border-accent text-foreground text-xs font-mono transition-colors"
+            oninput="filterConnections()"
+          >
+        </div>
+      </div>
+
+      <!-- Tab Content - Following -->
+      <div id="tab-following" class="flex flex-col gap-4">
+        {% if following %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="following-list">
+            {% for u in following %}
+              <div 
+                class="panel p-4 bg-panel flex items-center justify-between gap-4 hover:border-accent/40 transition-all duration-300 lift connection-card"
+                data-username="{{ u.username | lower }}"
+                data-name="{{ (u.first_name | default('') + ' ' + u.last_name | default('')) | lower }}"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="flex-shrink-0">
+                    <img src="{{ u.image_path }}" alt="{{ u.username }}" class="w-10 h-10 rounded-full object-cover border border-border">
+                  </a>
+                  <div class="min-w-0 flex flex-col">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="hover:text-accent font-bold text-xs text-foreground font-display transition line-clamp-1">
+                        {% if u.first_name or u.last_name %}
+                          {{ u.first_name | default('') }} {{ u.last_name | default('') }}
+                        {% else %}
+                          @{{ u.username }}
+                        {% endif %}
+                      </a>
+                      <span class="text-[9px] text-muted-foreground font-mono">@{{ u.username }}</span>
+                    </div>
+                    {% if u.bio %}
+                      <p class="text-[10px] text-muted-foreground font-mono line-clamp-1 leading-normal mt-0.5">
+                        {{ u.bio }}
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="flex-shrink-0">
+                  <button 
+                    data-user-id="{{ u.id }}"
+                    data-tab-context="following"
+                    class="connection-action-btn px-3 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 text-[10px] font-bold cursor-pointer transition duration-300 font-mono"
+                    onclick="toggleConnection(this)"
+                  >
+                    unfollow()
+                  </button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div id="following-empty-state">
+            {% set icon = 'users' %}
+            {% set title = 'Not Following Anyone' %}
+            {% set message = 'Start exploring and following developers to see their articles and updates!' %}
+            {% set action_url = url_for('search_users') %}
+            {% set action_text = 'find_developers()' %}
+            {% include 'partials/empty_state.html' %}
+          </div>
+        {% endif %}
+        
+        <!-- Dynamic empty state placeholder if filter clears the list -->
+        <div id="following-filter-empty" class="hidden">
+          {% set icon = 'search' %}
+          {% set title = 'No Connections Match' %}
+          {% set message = 'No following connections match your filter query.' %}
+          {% include 'partials/empty_state.html' %}
+        </div>
+      </div>
+
+      <!-- Tab Content - Followers -->
+      <div id="tab-followers" class="hidden flex flex-col gap-4">
+        {% if followers %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="followers-list">
+            {% for u in followers %}
+              {% set is_following = u.id in following_ids %}
+              <div 
+                class="panel p-4 bg-panel flex items-center justify-between gap-4 hover:border-accent/40 transition-all duration-300 lift connection-card"
+                data-username="{{ u.username | lower }}"
+                data-name="{{ (u.first_name | default('') + ' ' + u.last_name | default('')) | lower }}"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="flex-shrink-0">
+                    <img src="{{ u.image_path }}" alt="{{ u.username }}" class="w-10 h-10 rounded-full object-cover border border-border">
+                  </a>
+                  <div class="min-w-0 flex flex-col">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <a href="{{ url_for('get_user_posts', user_id=u.id) }}" class="hover:text-accent font-bold text-xs text-foreground font-display transition line-clamp-1">
+                        {% if u.first_name or u.last_name %}
+                          {{ u.first_name | default('') }} {{ u.last_name | default('') }}
+                        {% else %}
+                          @{{ u.username }}
+                        {% endif %}
+                      </a>
+                      <span class="text-[9px] text-muted-foreground font-mono">@{{ u.username }}</span>
+                    </div>
+                    {% if u.bio %}
+                      <p class="text-[10px] text-muted-foreground font-mono line-clamp-1 leading-normal mt-0.5">
+                        {{ u.bio }}
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="flex-shrink-0">
+                  <button 
+                    data-user-id="{{ u.id }}"
+                    data-tab-context="followers"
+                    class="connection-action-btn px-3 py-1.5 rounded-lg border text-[10px] font-bold cursor-pointer transition duration-300 font-mono 
+                    {% if is_following %}
+                      border-border bg-panel text-muted-foreground hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/30
+                    {% else %}
+                      bg-accent text-background border border-accent/25 hover:brightness-110 shadow-md shadow-accent/5
+                    {% endif %}"
+                    onclick="toggleConnection(this)"
+                  >
+                    {% if is_following %}following{% else %}follow_back(){% endif %}
+                  </button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div id="followers-empty-state">
+            {% set icon = 'users' %}
+            {% set title = 'No Followers Yet' %}
+            {% set message = 'When other developers follow your profile, they will appear here.' %}
+            {% include 'partials/empty_state.html' %}
+          </div>
+        {% endif %}
+        
+        <!-- Dynamic empty state placeholder if filter clears the list -->
+        <div id="followers-filter-empty" class="hidden">
+          {% set icon = 'search' %}
+          {% set title = 'No Connections Match' %}
+          {% set message = 'No followers match your filter query.' %}
+          {% include 'partials/empty_state.html' %}
+        </div>
+      </div>
+
+    </section>
+  </div>
+</main>
+
+<script>
+let currentTab = 'following';
+
+function switchTab(tab) {
+  currentTab = tab;
+  
+  const followingBtn = document.getElementById('tab-following-btn');
+  const followersBtn = document.getElementById('tab-followers-btn');
+  const followingTab = document.getElementById('tab-following');
+  const followersTab = document.getElementById('tab-followers');
+  
+  if (tab === 'following') {
+    followingBtn.className = "px-4 py-2.5 font-bold border-b-2 border-accent text-accent cursor-pointer transition-all duration-200";
+    followersBtn.className = "px-4 py-2.5 font-bold border-b-2 border-transparent text-muted-foreground hover:text-foreground cursor-pointer transition-all duration-200";
+    followingTab.classList.remove('hidden');
+    followersTab.classList.add('hidden');
+  } else {
+    followingBtn.className = "px-4 py-2.5 font-bold border-b-2 border-transparent text-muted-foreground hover:text-foreground cursor-pointer transition-all duration-200";
+    followersBtn.className = "px-4 py-2.5 font-bold border-b-2 border-accent text-accent cursor-pointer transition-all duration-200";
+    followingTab.classList.add('hidden');
+    followersTab.classList.remove('hidden');
+  }
+  
+  // Re-apply current search filter
+  filterConnections();
+}
+
+function filterConnections() {
+  const query = document.getElementById('connection-search').value.toLowerCase().trim();
+  const container = document.getElementById(`tab-${currentTab}`);
+  if (!container) return;
+
+  const cards = container.querySelectorAll('.connection-card');
+  let visibleCount = 0;
+  
+  cards.forEach(card => {
+    const username = card.dataset.username || '';
+    const name = card.dataset.name || '';
+    if (username.includes(query) || name.includes(query)) {
+      card.classList.remove('hidden');
+      card.classList.add('flex');
+      visibleCount++;
+    } else {
+      card.classList.remove('flex');
+      card.classList.add('hidden');
+    }
+  });
+
+  const emptyState = document.getElementById(`${currentTab}-empty-state`);
+  const filterEmptyState = document.getElementById(`${currentTab}-filter-empty`);
+  const listContainer = document.getElementById(`${currentTab}-list`);
+
+  if (cards.length > 0) {
+    if (visibleCount === 0) {
+      if (listContainer) listContainer.classList.add('hidden');
+      if (filterEmptyState) filterEmptyState.classList.remove('hidden');
+    } else {
+      if (listContainer) listContainer.classList.remove('hidden');
+      if (filterEmptyState) filterEmptyState.classList.add('hidden');
+    }
+  }
+}
+
+async function toggleConnection(btn) {
+  const targetUserId = btn.dataset.userId;
+  if (!targetUserId) return;
+  
+  try {
+    btn.disabled = true;
+    const res = await fetch(`/users/${targetUserId}/follow`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    
+    if (res.status === 401) {
+      window.location.reload();
+      return;
+    }
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.detail || err.message || "Failed to update connection status");
+      return;
+    }
+    
+    const data = await res.json();
+    if (data.success) {
+      // Find all buttons on the page that correspond to this user ID and update them
+      const allMatchingBtns = document.querySelectorAll(`.connection-action-btn[data-user-id="${targetUserId}"]`);
+      
+      allMatchingBtns.forEach(mBtn => {
+        const context = mBtn.dataset.tabContext;
+        
+        if (data.following) {
+          // Now following
+          if (context === 'following') {
+            mBtn.textContent = 'unfollow()';
+            mBtn.className = "connection-action-btn px-3 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 text-[10px] font-bold cursor-pointer transition duration-300 font-mono";
+          } else {
+            mBtn.textContent = 'following';
+            mBtn.className = "connection-action-btn px-3 py-1.5 rounded-lg border border-border bg-panel text-muted-foreground hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/30 text-[10px] font-bold cursor-pointer transition duration-300 font-mono";
+          }
+        } else {
+          // Now unfollowed
+          if (context === 'following') {
+            mBtn.textContent = 'follow()';
+            mBtn.className = "connection-action-btn px-3 py-1.5 rounded-lg border bg-accent text-background border border-accent/25 hover:brightness-110 shadow-md shadow-accent/5 text-[10px] font-bold cursor-pointer transition duration-300 font-mono";
+          } else {
+            mBtn.textContent = 'follow_back()';
+            mBtn.className = "connection-action-btn px-3 py-1.5 rounded-lg border bg-accent text-background border border-accent/25 hover:brightness-110 shadow-md shadow-accent/5 text-[10px] font-bold cursor-pointer transition duration-300 font-mono";
+          }
+        }
+      });
+      
+      // Update counters dynamically
+      updateNetworkCounters(data.following, targetUserId);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("An error occurred. Please try again.");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function updateNetworkCounters(isFollowing, targetUserId) {
+  const followingCountEl = document.getElementById('tab-following-count');
+  const sidebarFollowingCountEl = document.getElementById('sidebar-following-count');
+  
+  if (followingCountEl && sidebarFollowingCountEl) {
+    let currentFollowing = parseInt(followingCountEl.textContent) || 0;
+    if (isFollowing) {
+      currentFollowing += 1;
+    } else {
+      currentFollowing = Math.max(0, currentFollowing - 1);
+    }
+    followingCountEl.textContent = currentFollowing;
+    sidebarFollowingCountEl.textContent = currentFollowing;
+  }
+}
+</script>
+{% endblock content %}
