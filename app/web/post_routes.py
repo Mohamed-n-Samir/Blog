@@ -19,7 +19,13 @@ post_router = APIRouter()
 @post_router.get("/blog/posts/{post_id}", include_in_schema=False, name="post")
 async def post_page(post_id: int, request: Request, db: DBSession):
     post_service = PostService(db)
-    post = await post_service.get(post_id, options=[selectinload(Post.author), selectinload(Post.tags), selectinload(Post.category)])
+    post = await post_service.get(post_id, options=[
+        selectinload(Post.author),
+        selectinload(Post.tags),
+        selectinload(Post.category),
+        selectinload(Post.likes),
+        selectinload(Post.comments)
+    ])
     if post:
         return templates.TemplateResponse(request, "pages/post.html", {"post": post})
 

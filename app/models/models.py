@@ -65,6 +65,17 @@ class User(Base):
         back_populates="following",
     )
 
+    liked_posts: Mapped[list[Post]] = relationship(
+        "Post",
+        secondary="post_likes",
+        back_populates="likes",
+    )
+    comments: Mapped[list[Comment]] = relationship(
+        "Comment",
+        back_populates="author",
+        cascade="all, delete-orphan",
+    )
+
     @property
     def image_path(self) -> str:
         if self.image_file:
@@ -80,6 +91,18 @@ followers = Table(
     ),
     Column(
         "followed_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    ),
+)
+
+
+post_likes = Table(
+    "post_likes",
+    Base.metadata,
+    Column(
+        "post_id", Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column(
+        "user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     ),
 )
 
@@ -125,11 +148,36 @@ class Post(Base):
     author: Mapped[User] = relationship(back_populates="posts")
     category: Mapped[Category | None] = relationship(back_populates="posts")
 
+    likes: Mapped[list[User]] = relationship(
+        "User",
+        secondary=post_likes,
+        back_populates="liked_posts",
+    )
+    comments: Mapped[list[Comment]] = relationship(
+        "Comment",
+        back_populates="post",
+        cascade="all, delete-orphan",
+    )
+
     @property
     def image_path(self) -> str:
         if self.image_file:
             return f"/media/blog_images/{self.image_file}"
         return "/static/imgs/blog_images/post_placeholder.avif"
+
+    @property
+    def likes_count(self) -> int:
+        try:
+            return len(self.likes)
+        except Exception:
+            return 0
+
+    @property
+    def comments_count(self) -> int:
+        try:
+            return len(self.comments)
+        except Exception:
+            return 0
 
     @property
     def reading_time_minutes(self):
@@ -159,3 +207,23 @@ class Category(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     posts: Mapped[list[Post]] = relationship(back_populates="category")
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
+
+    post_id: Mapped[int] = mapped_column(
+        ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    author: Mapped[User] = relationship(back_populates="comments")
+    post: Mapped[Post] = relationship(back_populates="comments")

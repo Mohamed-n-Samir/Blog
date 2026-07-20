@@ -84,6 +84,8 @@ class PostResponse(PostBase):
     created_at: datetime
     author: UserPublicResponse
     category: Optional[CategoryResponse] = None
+    likes_count: int = 0
+    comments_count: int = 0
 
 
 class TagBase(BaseModel):
@@ -97,4 +99,22 @@ class TagResponse(TagBase):
     model_config = ConfigDict(from_attributes=True)
 
     id:int
+
+
+class CommentCreate(BaseModel):
+    content: str = Field(min_length=1)
+
+
+class CommentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    content: str
+    created_at: datetime
+    post_id: int
+    author: UserPublicResponse
+
+
+class LikeToggleResponse(BaseModel):
+    liked: bool
+    likes_count: int
 

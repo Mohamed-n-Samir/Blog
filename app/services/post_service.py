@@ -18,15 +18,15 @@ class PostService:
         self.repo = PostRepository(db)
 
     async def get(
-        self, post_id: int, options=[selectinload(Post.author), selectinload(Post.tags)]
+        self, post_id: int, options=[selectinload(Post.author), selectinload(Post.tags), selectinload(Post.likes), selectinload(Post.comments)]
     ):
         return await self.repo.get(id=post_id, options=options)
 
-    async def get_all(self, options=[selectinload(Post.author)]):
+    async def get_all(self, options=[selectinload(Post.author), selectinload(Post.likes), selectinload(Post.comments)]):
         return await self.repo.get_all(options=options)
 
     async def get_all_by_user_id(
-        self, user_id: int, options=[selectinload(Post.author)]
+        self, user_id: int, options=[selectinload(Post.author), selectinload(Post.likes), selectinload(Post.comments)]
     ):
         return await self.repo.get_all_by(user_id=user_id, options=options)
 
@@ -40,6 +40,8 @@ class PostService:
             selectinload(Post.author),
             selectinload(Post.tags),
             selectinload(Post.category),
+            selectinload(Post.likes),
+            selectinload(Post.comments),
         ],
     ):
         return await self.repo.paginate(

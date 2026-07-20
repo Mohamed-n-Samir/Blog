@@ -9,7 +9,7 @@ from app.models.models import Post
 from app.models.schemas import PostResponse
 from app.services.post_service import PostService
 from app.services.user_service import UserService
-from app.utils.exceptions import NotFoundException, AuthenticationException
+from app.utils.exceptions import APPException, NotFoundException, AuthenticationException
 from app.utils.image_uploader import save_uploaded_image
 from app.config.templates import templates
 

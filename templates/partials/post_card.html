@@ -33,12 +33,20 @@
         </div>
         
         <!-- Card Footer with Author Profile Link and Category -->
-        <div class="pt-3.5 border-t border-border/60 flex items-center justify-between mt-auto">
-            <div class="flex items-center gap-2">
-                <div class="h-5 w-5 rounded-full bg-accent/15 border border-accent/35 flex items-center justify-center text-[9px] font-mono font-bold text-accent uppercase select-none">
-                    {{ post.author.username[0] }}
+        <div class="pt-3.5 border-t border-border/60 flex items-center justify-between mt-auto flex-wrap gap-2">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5">
+                    <div class="h-5 w-5 rounded-full bg-accent/15 border border-accent/35 flex items-center justify-center text-[9px] font-mono font-bold text-accent uppercase select-none">
+                        {{ post.author.username[0] }}
+                    </div>
+                    <a href="{{ url_for('user_profile', user_id=post.author.id) }}" class="text-[10px] font-mono text-muted-foreground hover:text-accent transition cursor-pointer">@{{ post.author.username }}</a>
                 </div>
-                <a href="{{ url_for('user_profile', user_id=post.author.id) }}" class="text-[10px] font-mono text-muted-foreground hover:text-accent transition cursor-pointer">@{{ post.author.username }}</a>
+                
+                <!-- Likes & Comments Counts -->
+                <div class="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                    <span class="flex items-center gap-0.5"><i data-lucide="heart" class="h-3 w-3 text-rose-500 fill-rose-500/10"></i>{{ post.likes | length }}</span>
+                    <span class="flex items-center gap-0.5"><i data-lucide="message-square" class="h-3 w-3 text-accent"></i>{{ post.comments | length }}</span>
+                </div>
             </div>
             {% if post.category %}
             <span class="text-[9px] font-mono bg-panel-2 py-0.5 px-2 rounded-full border border-border text-muted-foreground">{{ post.category.name }}</span>

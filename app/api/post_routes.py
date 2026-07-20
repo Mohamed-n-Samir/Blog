@@ -2,11 +2,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload 
 
-from app.models.models import Post, User
-from app.models.schemas import PostResponse, PostCreate
+from app.models.models import Post, User, Comment
+from app.models.schemas import PostResponse, PostCreate, CommentCreate, CommentResponse, LikeToggleResponse
 
 from app.services.user_service import UserService
 from app.services.post_service import PostService
@@ -158,5 +159,88 @@ async def delete_post(
 
     await post_service.delete(post_id)
     return None
+
+
+@post_router.post("/api/posts/{post_id}/like", response_model=LikeToggleResponse)
+async def toggle_post_like(
+    post_id: int,
+    db: DBSession,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    post_service = PostService(db)
+    post = await post_service.get(post_id, options=[selectinload(Post.likes)])
+    if not post:
+        raise NotFoundException(f"Post with id: {post_id} does not exist")
+
+    # Check if user already liked the post
+    liked = False
+    # Since we preloaded post.likes, we can check by id
+    user_ids_liked = [u.id for u in post.likes]
+    if current_user.id in user_ids_liked:
+        # Remove like
+        post.likes = [u for u in post.likes if u.id != current_user.id]
+        liked = False
+    else:
+        # Add like
+        # We need to fetch current_user with Session db, or merge
+        db_user = await db.get(User, current_user.id)
+        post.likes.append(db_user)
+        liked = True
+
+    await db.commit()
+    return LikeToggleResponse(liked=liked, likes_count=len(post.likes))
+
+
+@post_router.post(
+    "/api/posts/{post_id}/comments",
+    status_code=status.HTTP_201_CREATED,
+    response_model=CommentResponse,
+)
+async def add_post_comment(
+    post_id: int,
+    comment_in: CommentCreate,
+    db: DBSession,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    post_service = PostService(db)
+    post = await post_service.get(post_id)
+    if not post:
+        raise NotFoundException(f"Post with id: {post_id} does not exist")
+
+    new_comment = Comment(
+        content=comment_in.content,
+        post_id=post_id,
+        user_id=current_user.id
+    )
+    db.add(new_comment)
+    await db.commit()
+    
+    # Refresh to load relationships (like author)
+    stmt = (
+        select(Comment)
+        .where(Comment.id == new_comment.id)
+        .options(selectinload(Comment.author))
+    )
+    res = await db.scalars(stmt)
+    comment_loaded = res.unique().one()
+    return comment_loaded
+
+
+@post_router.get("/api/posts/{post_id}/comments", response_model=list[CommentResponse])
+async def get_post_comments(post_id: int, db: DBSession):
+    post_service = PostService(db)
+    post = await post_service.get(post_id)
+    if not post:
+        raise NotFoundException(f"Post with id: {post_id} does not exist")
+
+    stmt = (
+        select(Comment)
+        .where(Comment.post_id == post_id)
+        .options(selectinload(Comment.author))
+        .order_by(Comment.created_at.asc())
+    )
+    res = await db.scalars(stmt)
+    comments = res.unique().all()
+    return comments
 
 
