@@ -1,14 +1,17 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Request, Depends, Form, File, UploadFile
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.config.database import async_get_db
 from app.constants.constant import ROOT_DIR
-from app.models.models import Post
+from app.models.models import Post, User
 from app.models.schemas import PostResponse
 from app.services.post_service import PostService
 from app.services.user_service import UserService
+from app.services.tag_service import TagService
 from app.utils.exceptions import APPException, NotFoundException, AuthenticationException
 from app.utils.image_uploader import save_uploaded_image
 from app.config.templates import templates
@@ -20,7 +23,15 @@ user_router = APIRouter()
 @user_router.get(
     "/users/{user_id}/posts", include_in_schema=False, response_model=list[PostResponse]
 )
-async def get_user_posts(user_id: int, request: Request, db: DBSession, page: int = 1, page_size: int = 6):
+async def get_user_posts(
+    user_id: int,
+    request: Request,
+    db: DBSession,
+    page: int = 1,
+    page_size: int = 6,
+    sort_by: str | None = None,
+    tag: str | None = None
+):
     current_user = request.state.user
     print(f"[DEBUG] get_user_posts: current_user={current_user}")
     if current_user:
@@ -37,11 +48,16 @@ async def get_user_posts(user_id: int, request: Request, db: DBSession, page: in
             message=f"User with the id: {user_id} doesn't exist!",
         )
     post_service = PostService(db)
+    tag_service = TagService(db)
+    
     paginated = await post_service.paginate(
         page=page,
         page_size=page_size,
-        conditions=[Post.user_id == user_id]
+        conditions=[Post.user_id == user_id],
+        sort_by=sort_by,
+        tag=tag
     )
+    all_tags = await tag_service.get_all()
 
     return templates.TemplateResponse(
         request,
@@ -52,6 +68,9 @@ async def get_user_posts(user_id: int, request: Request, db: DBSession, page: in
             "page": paginated.page,
             "total_pages": paginated.total_pages,
             "total": paginated.total,
+            "all_tags": all_tags,
+            "sort_by": sort_by,
+            "tag": tag,
         }
     )
 

@@ -36,6 +36,8 @@ class PostService:
         page: int = 1,
         page_size: int = 6,
         conditions: list = [],
+        sort_by: str | None = None,
+        tag: str | None = None,
         options=[
             selectinload(Post.author),
             selectinload(Post.tags),
@@ -44,12 +46,38 @@ class PostService:
             selectinload(Post.comments),
         ],
     ):
+        from sqlalchemy import func, select
+        from app.models.models import post_likes, Comment, Tag
+
+        local_conditions = list(conditions)
+
+        if tag:
+            local_conditions.append(Post.tags.any(Tag.name == tag))
+
+        order_by = [Post.pinned.desc()]
+        if sort_by == "likes":
+            likes_subquery = (
+                select(func.count(post_likes.c.user_id))
+                .where(post_likes.c.post_id == Post.id)
+                .scalar_subquery()
+            )
+            order_by.append(likes_subquery.desc())
+        elif sort_by == "comments":
+            comments_subquery = (
+                select(func.count(Comment.id))
+                .where(Comment.post_id == Post.id)
+                .scalar_subquery()
+            )
+            order_by.append(comments_subquery.desc())
+
+        order_by.append(Post.created_at.desc())
+
         return await self.repo.paginate(
-            *conditions,
+            *local_conditions,
             page=page,
             page_size=page_size,
             options=options,
-            order_by=[Post.pinned.desc(), Post.created_at.desc()],
+            order_by=order_by,
         )
 
     async def add(self, post: Post):

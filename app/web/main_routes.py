@@ -7,6 +7,7 @@ from app.config.database import async_get_db
 from app.constants.constant import ROOT_DIR
 from app.models.models import Post
 from app.services.post_service import PostService
+from app.services.tag_service import TagService
 from app.config.templates import templates
 
 DBSession = Annotated[AsyncSession, Depends(async_get_db)]
@@ -15,9 +16,25 @@ main_router = APIRouter()
 
 @main_router.get("/", include_in_schema=False, name="home")
 @main_router.get("/blog", include_in_schema=False, name="blog")
-async def home_page(request: Request, db: DBSession, page: int = 1, page_size: int = 6):
+async def home_page(
+    request: Request,
+    db: DBSession,
+    page: int = 1,
+    page_size: int = 6,
+    sort_by: str | None = None,
+    tag: str | None = None
+):
     post_service = PostService(db)
-    paginated = await post_service.paginate(page=page, page_size=page_size)
+    tag_service = TagService(db)
+    
+    paginated = await post_service.paginate(
+        page=page,
+        page_size=page_size,
+        sort_by=sort_by,
+        tag=tag
+    )
+    all_tags = await tag_service.get_all()
+    
     return templates.TemplateResponse(
         request,
         "pages/index.html",
@@ -26,6 +43,9 @@ async def home_page(request: Request, db: DBSession, page: int = 1, page_size: i
             "page": paginated.page,
             "total_pages": paginated.total_pages,
             "total": paginated.total,
+            "all_tags": all_tags,
+            "sort_by": sort_by,
+            "tag": tag,
         }
     )
 
@@ -36,11 +56,16 @@ async def categories(
     db: DBSession,
     category_id: int | None = None,
     page: int = 1,
-    page_size: int = 6
+    page_size: int = 6,
+    sort_by: str | None = None,
+    tag: str | None = None
 ):
     from app.services.category_service import CategoryService
     category_service = CategoryService(db)
+    tag_service = TagService(db)
+    
     categories_list = await category_service.get_all()
+    all_tags = await tag_service.get_all()
     
     active_category = None
     posts = []
@@ -55,7 +80,9 @@ async def categories(
             paginated = await post_service.paginate(
                 page=page,
                 page_size=page_size,
-                conditions=[Post.category_id == category_id]
+                conditions=[Post.category_id == category_id],
+                sort_by=sort_by,
+                tag=tag
             )
             posts = paginated.items
             page_num = paginated.page
@@ -67,7 +94,9 @@ async def categories(
         paginated = await post_service.paginate(
             page=page,
             page_size=page_size,
-            conditions=[Post.category_id == active_category.id]
+            conditions=[Post.category_id == active_category.id],
+            sort_by=sort_by,
+            tag=tag
         )
         posts = paginated.items
         page_num = paginated.page
@@ -84,5 +113,8 @@ async def categories(
             "page": page_num,
             "total_pages": total_pages,
             "total": total,
+            "all_tags": all_tags,
+            "sort_by": sort_by,
+            "tag": tag,
         }
     )

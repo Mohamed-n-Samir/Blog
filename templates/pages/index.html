@@ -28,6 +28,64 @@
         </p>
     </div>
 
+    <!-- Filters Panel -->
+    <div class="panel p-4 mb-8 bg-panel/60 border border-border/50 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <!-- Left: Sorting -->
+        <div class="flex items-center gap-3 flex-wrap">
+            <span class="text-xs font-mono text-muted-foreground flex items-center gap-1.5"><i data-lucide="sliders-horizontal" class="h-3.5 w-3.5 text-accent"></i>Sort:</span>
+            <div class="flex flex-wrap gap-1.5">
+                <a href="?sort_by=newest{% if tag %}&tag={{ tag }}{% endif %}" class="px-3 py-1 rounded-lg border text-xs font-mono cursor-pointer transition-colors
+                    {% if not sort_by or sort_by == 'newest' %}
+                        border-accent bg-accent/15 text-accent font-semibold
+                    {% else %}
+                        border-border bg-panel text-muted-foreground hover:text-foreground hover:bg-panel-2
+                    {% endif %}">
+                    newest()
+                </a>
+                <a href="?sort_by=likes{% if tag %}&tag={{ tag }}{% endif %}" class="px-3 py-1 rounded-lg border text-xs font-mono cursor-pointer transition-colors
+                    {% if sort_by == 'likes' %}
+                        border-accent bg-accent/15 text-accent font-semibold
+                    {% else %}
+                        border-border bg-panel text-muted-foreground hover:text-foreground hover:bg-panel-2
+                    {% endif %}">
+                    most_liked()
+                </a>
+                <a href="?sort_by=comments{% if tag %}&tag={{ tag }}{% endif %}" class="px-3 py-1 rounded-lg border text-xs font-mono cursor-pointer transition-colors
+                    {% if sort_by == 'comments' %}
+                        border-accent bg-accent/15 text-accent font-semibold
+                    {% else %}
+                        border-border bg-panel text-muted-foreground hover:text-foreground hover:bg-panel-2
+                    {% endif %}">
+                    most_commented()
+                </a>
+            </div>
+        </div>
+
+        <!-- Right: Tag Filtering -->
+        {% if all_tags %}
+        <div class="flex items-center gap-3 flex-wrap">
+            <span class="text-xs font-mono text-muted-foreground flex items-center gap-1.5"><i data-lucide="tag" class="h-3.5 w-3.5 text-accent"></i>Tags:</span>
+            <div class="flex flex-wrap gap-1.5 max-w-md">
+                {% for t in all_tags %}
+                    <a href="?tag={{ t.name }}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}" class="px-2.5 py-0.5 rounded-full border text-[10px] font-mono cursor-pointer transition-all
+                        {% if tag == t.name %}
+                            border-accent bg-accent text-background font-semibold
+                        {% else %}
+                            border-border/60 bg-panel text-muted-foreground hover:text-foreground hover:border-accent/40
+                        {% endif %}">
+                        #{{ t.name }}
+                    </a>
+                {% endfor %}
+                {% if tag %}
+                    <a href="?{% if sort_by %}sort_by={{ sort_by }}{% endif %}" class="px-2 py-0.5 rounded-full border border-rose-500/40 bg-rose-500/10 text-rose-400 text-[10px] font-mono cursor-pointer hover:bg-rose-500/20 transition flex items-center gap-1">
+                        clear_filters() <i data-lucide="x" class="h-3 w-3"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
     {% if posts %}
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {% for post in posts %}
