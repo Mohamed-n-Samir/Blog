@@ -1,10 +1,19 @@
 import os
 import uuid
+
+from io import BytesIO
+from pathlib import Path
+
+from PIL import Image, ImageOps
+
 from fastapi import UploadFile, status
+
 from app.constants.constant import ROOT_DIR
 from app.utils.exceptions import APPException, ServerException
 
+
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "avif"}
+IMAGE_MODES = {"RGBA", "LA", "P"}
 
 async def save_uploaded_image(upload_file: UploadFile, folder: str) -> str:
     """
@@ -34,19 +43,11 @@ async def save_uploaded_image(upload_file: UploadFile, folder: str) -> str:
             message="Uploaded file is not a supported image type. GIFs are not allowed."
         )
 
-    # Ensure the target directory exists
-    target_dir = ROOT_DIR / "media" / folder
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    # Generate unique filename to avoid duplicates/collisions
-    unique_filename = f"{uuid.uuid4().hex}.{ext}"
-    file_path = target_dir / unique_filename
-
-    # Save the file to disk
     try:
         content = await upload_file.read()
-        with open(file_path, "wb") as f:
-            f.write(content)
+        image = process_profile_image(content)
+        saved_filename = save_profile_image(img=image, folder=folder)
+
     except Exception as e:
         raise ServerException(
             message=f"Failed to write image file: {str(e)}"
@@ -54,4 +55,27 @@ async def save_uploaded_image(upload_file: UploadFile, folder: str) -> str:
     finally:
         await upload_file.close()
 
-    return unique_filename
+    return saved_filename
+
+
+def process_profile_image(content: bytes) -> Image:
+    with Image.open(BytesIO(content)) as original:
+        img = ImageOps.exif_transpose(original)
+        img = ImageOps.fit(img, (300,300), method=Image.Resampling.LANCZOS)
+
+        if img.mode in IMAGE_MODES:
+            img = img.convert("RGB")
+
+        return img
+    
+def save_profile_image(img, folder) -> str:
+    target_dir = ROOT_DIR / "media" / folder
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}.jpg"
+    file_path = target_dir / filename
+
+    img.save(file_path, "JPEG", quality=85, optimize=True)
+
+    return filename
+        

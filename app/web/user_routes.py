@@ -13,7 +13,7 @@ from app.services.post_service import PostService
 from app.services.user_service import UserService
 from app.services.tag_service import TagService
 from app.utils.exceptions import APPException, NotFoundException, AuthenticationException
-from app.utils.image_uploader import save_uploaded_image
+from app.utils.image_operations import save_uploaded_image
 from app.config.templates import templates
 
 DBSession = Annotated[AsyncSession, Depends(async_get_db)]

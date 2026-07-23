@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, File, UploadFile, Query, status
-from app.utils.image_uploader import save_uploaded_image
+from app.utils.image_operations import save_uploaded_image
 from app.utils.exceptions import APPException
 
 upload_router = APIRouter()
