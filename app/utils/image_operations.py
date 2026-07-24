@@ -15,6 +15,8 @@ from app.utils.exceptions import APPException, ServerException
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "avif"}
 IMAGE_MODES = {"RGBA", "LA", "P"}
 
+MEDIA_DIR = ROOT_DIR / "media"
+
 async def save_uploaded_image(upload_file: UploadFile, folder: str) -> str:
     """
     Validates and saves an uploaded image file to the media/{folder} directory.
@@ -69,7 +71,7 @@ def process_profile_image(content: bytes) -> Image:
         return img
     
 def save_profile_image(img, folder) -> str:
-    target_dir = ROOT_DIR / "media" / folder
+    target_dir = MEDIA_DIR / folder
     target_dir.mkdir(parents=True, exist_ok=True)
 
     filename = f"{uuid.uuid4().hex}.jpg"
@@ -78,4 +80,14 @@ def save_profile_image(img, folder) -> str:
     img.save(file_path, "JPEG", quality=85, optimize=True)
 
     return filename
+
+def delete_profile_image(image_path: str | None) -> None:
+    if image_path is None:
+        return
+
+    full_path = MEDIA_DIR / image_path
+
+    if full_path.exists():
+        full_path.unlink()
+        
         
