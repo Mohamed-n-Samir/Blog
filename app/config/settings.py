@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     algorithm: str = os.getenv("ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))  # 7 days
 
+    max_upload_size_bytes: int = 5 * 1024 * 1024
+
     class Config:
         env_file = ".env"
         case_sensitive = False

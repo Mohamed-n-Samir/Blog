@@ -4,10 +4,12 @@ import uuid
 from io import BytesIO
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from fastapi import UploadFile, status
+from fastapi.concurrency import run_in_threadpool
 
+from app.config.settings import settings
 from app.constants.constant import ROOT_DIR
 from app.utils.exceptions import APPException, ServerException
 
@@ -29,6 +31,14 @@ async def save_uploaded_image(upload_file: UploadFile, folder: str) -> str:
             message="No filename provided in upload."
         )
 
+    content = await upload_file.read()
+    
+    if len(content) > settings.max_upload_size_bytes:
+        raise APPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message=f"File too large. Maximum size is {settings.max_upload_size_bytes // (1024*1024)}MB."
+        )
+
     # Validate file extension
     ext = os.path.splitext(upload_file.filename)[1].lower().lstrip(".")
     if ext not in ALLOWED_EXTENSIONS:
@@ -46,14 +56,20 @@ async def save_uploaded_image(upload_file: UploadFile, folder: str) -> str:
         )
 
     try:
-        content = await upload_file.read()
-        image = process_profile_image(content)
+        image = await run_in_threadpool(process_profile_image(content))
         saved_filename = save_profile_image(img=image, folder=folder)
 
+    except UnidentifiedImageError as e:
+        raise APPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Invalid image file. Please upload a valid image"
+        )
+    
     except Exception as e:
         raise ServerException(
             message=f"Failed to write image file: {str(e)}"
         )
+
     finally:
         await upload_file.close()
 

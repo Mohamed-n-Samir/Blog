@@ -120,6 +120,7 @@ async def update_profile(
         user_service = UserService(db)
         # Save image file if uploaded
         if image and image.filename:
+            
             uploaded_filename = await save_uploaded_image(image, "profile_pics")
             current_user.image_file = uploaded_filename
     
